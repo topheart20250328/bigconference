@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BIG大特會 | 掃描開始</title>
+    <meta name="description" content="掃描 QR Code 顯示一條經文與一條名人語錄；同一支手機每次掃描都會顯示相同結果。" />
+    <style>
+      :root {
+        --bg: #0f172a; /* slate-900 */
+        --card: #111827; /* gray-900 */
+        --muted: #94a3b8; /* slate-400 */
+        --text: #e5e7eb; /* gray-200 */
+        --accent: #22c55e; /* green-500 */
+        --accent-2: #60a5fa; /* blue-400 */
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif;
+        background: radial-gradient(1200px 600px at 50% -200px, #1f2937 0, var(--bg) 60%);
+        color: var(--text);
+        min-height: 100vh; display: grid; place-items: center; padding: 24px;
+      }
+      .container { width: 100%; max-width: 820px; display: grid; gap: 16px; justify-items: center; }
+      header { text-align: center; }
+      h1 { margin: 0; font-size: 24px; }
+      .note { color: var(--muted); font-size: 14px; text-align: center; }
+      #qrcode { width: 280px; height: 280px; display: grid; place-items: center; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>BIG大特會</h1>
+      </header>
+      <div id="qrcode"></div>
+      <div class="note">請用手機掃描上方 QR</div>
+    </div>
+    <script>
+      const target = location.origin + location.pathname.replace(/index\.html?$/, '') + 'view.html';
+      const img = new Image();
+      img.alt = 'Scan QR to open';
+      img.width = 280; img.height = 280;
+      img.src = `https://chart.googleapis.com/chart?cht=qr&chs=280x280&chl=${encodeURIComponent(target)}&choe=UTF-8`;
+      document.getElementById('qrcode').appendChild(img);
+    </script>
+  </body>
+  </html>
