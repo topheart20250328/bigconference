@@ -102,6 +102,7 @@ function isChineseName(s) {
 }
 
 const LS_RESET = 'rs_quiz_last_reset_v1';
+function currentSalt() { return String(localStorage.getItem(LS_RESET) || ''); }
 
 // Deferred init to allow global reset check first
 async function initSavedState() {
@@ -218,8 +219,9 @@ function finish() {
   const name = localStorage.getItem(LS.playerName) || '';
   showResult(name, totalScore);
   // Persist completion
+  // 在結果中加入目前 salt，讓重置後不會讀到舊結果
   localStorage.setItem(LS.completed, deviceKey);
-  localStorage.setItem(LS.result, JSON.stringify({ name, score: totalScore, t: Date.now(), deviceKey }));
+  localStorage.setItem(LS.result, JSON.stringify({ name, score: totalScore, t: Date.now(), deviceKey, salt: currentSalt() }));
   // Submit to leaderboard if configured
   submitScore(name, totalScore);
 }
@@ -263,8 +265,8 @@ async function checkGlobalReset() {
     const localTs = Number(localStorage.getItem(LS_RESET) || '0');
     if (remoteTs > localTs) {
       // Clear local quiz locks
-      localStorage.removeItem(LS.completed);
-      localStorage.removeItem(LS.result);
+  localStorage.removeItem(LS.completed);
+  localStorage.removeItem(LS.result);
       localStorage.setItem(LS_RESET, String(remoteTs));
     }
   } catch { /* noop */ }

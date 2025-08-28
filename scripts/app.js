@@ -207,6 +207,7 @@ async function main() {
   // Check remote reset flag (may clear local device/bind so do this before obtaining key)
   await checkGlobalReset();
   const deviceKey = getOrCreateDeviceKey();
+  const resetSalt = String(localStorage.getItem(LS_RESET) || '');
 
   // expose current key on UI if present
   const keyEl = document.getElementById('currentKey');
@@ -244,10 +245,11 @@ async function main() {
 
     // Deterministic picks using device key
     const versePool = buildWeightedArray(verses, (v) => rarityWeight(v.rarity));
+    const seedBase = `${deviceKey}|${resetSalt}`;
     const verseIdx = versePool.length
-      ? versePool[pickDeterministicIndex(versePool.length, deviceKey, 'verse')]
+      ? versePool[pickDeterministicIndex(versePool.length, seedBase, 'verse')]
       : 0;
-    const quoteIdx = pickDeterministicIndex(quotes.length, deviceKey, 'quote');
+    const quoteIdx = pickDeterministicIndex(quotes.length, seedBase, 'quote');
 
     renderVerse(verses[verseIdx]);
     renderQuote(quotes[quoteIdx]);
