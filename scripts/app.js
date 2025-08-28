@@ -10,6 +10,14 @@ const STATE_KEYS = {
   bindCode: 'rs_bind_code_v1', // manual override for cross-browser consistency
 };
 
+// Optional data version from URL (e.g., view.html?v=20250828) to force-refresh JSON after updates
+const DATA_VERSION = (() => {
+  try {
+    const p = new URLSearchParams(location.search);
+    return p.get('v') || '';
+  } catch { return ''; }
+})();
+
 function stableHash32(str) {
   // MurmurHash3-ish simple 32-bit hash (not cryptographically secure).
   let h = 2166136261 >>> 0; // FNV-1a base
@@ -113,7 +121,8 @@ function pickDeterministicIndex(max, seedStr, salt) {
 }
 
 async function fetchJSON(path) {
-  const res = await fetch(path, { cache: 'no-store' });
+  const url = DATA_VERSION ? `${path}?v=${encodeURIComponent(DATA_VERSION)}` : path;
+  const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }

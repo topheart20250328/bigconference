@@ -21,9 +21,24 @@
       .card.quote{border-left:3px solid var(--accent2)}
       .note{color:var(--muted);font-size:12px;text-align:center}
       .hidden{display:none}
+
+      /* Intro overlay */
+      .intro { position: fixed; inset: 0; background: url('./image/background.jpg') center/cover no-repeat fixed, rgba(0,0,0,0.8); display: grid; place-items: center; z-index: 40; }
+      .intro-inner { display:grid; gap: 24px; justify-items:center; }
+      .intro .brand img { width: 66vw; max-width: 480px; height:auto; filter: drop-shadow(0 6px 24px rgba(0,0,0,0.6)); opacity: 0; transform: translateY(-8px); animation: fadeInUp 1.4s ease both .2s; }
+      .intro .logo-bottom { width: 28vw; max-width: 160px; opacity: 0; transform: translateY(8px); animation: fadeInDown 1.4s ease both .6s; }
+      @keyframes fadeInUp { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
+      @keyframes fadeInDown { from { opacity:0; transform: translateY(-8px);} to { opacity:1; transform: translateY(0);} }
+      .corner-logo { position: fixed; right: 12px; bottom: 12px; width: 64px; height:auto; opacity:.95; z-index: 10; }
     </style>
   </head>
   <body>
+    <div id="intro" class="intro">
+      <div class="intro-inner">
+        <div class="brand"><img src="./image/BIG大特會-white.png" alt="BIG大特會" /></div>
+        <img class="logo-bottom" src="./image/topchurchlogo.png" alt="Top Church" />
+      </div>
+    </div>
     <div class="container">
       <header>
         <h1>BIG大特會</h1>
@@ -43,6 +58,17 @@
         </article>
       </section>
     </div>
+    <img class="corner-logo" src="./image/topchurchlogo.png" alt="Top Church" />
     <script src="./scripts/app.js" type="module"></script>
+    <script>
+      // 3秒片頭後淡出
+      setTimeout(()=>{
+        const el = document.getElementById('intro');
+        if (!el) return;
+        el.style.transition = 'opacity .6s ease';
+        el.style.opacity = '0';
+        setTimeout(()=>{ el.style.display = 'none'; }, 650);
+      }, 3000);
+    </script>
   </body>
   </html>
