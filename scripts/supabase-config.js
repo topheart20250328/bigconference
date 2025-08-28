@@ -6,4 +6,4 @@ window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 // e.g., https://<project>.functions.supabase.co/clear-leaderboard
 window.SUPABASE_ADMIN_CLEAR_URL = 'https://xxnhsgcpejbnzqpzujvd.functions.supabase.co/clear-leaderboard';
 // Optional: Admin token prompt default (leave empty to prompt each time)
-window.SUPABASE_ADMIN_TOKEN = '';
+window.SUPABASE_ADMIN_TOKEN = 'zI7uGjJhifr3sVq0Aa8cYbYIVWfX06GJzJJO/2BGezs=';
