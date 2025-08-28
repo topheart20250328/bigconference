@@ -20,7 +20,7 @@
       .meter{height:100%;width:100%}
       .hint{color:var(--muted);font-size:14px;text-align:center}
       .corner-logo{position:fixed;right:12px;bottom:12px;width:64px;height:auto;opacity:.95}
-      .intro{position:fixed;inset:0;background:url('./image/background.jpg') center/cover no-repeat fixed, rgba(0,0,0,0.8);display:grid;place-items:center;z-index:40}
+  .intro{position:fixed;inset:0;background:url('./image/background.jpg') center/cover no-repeat fixed, rgba(0,0,0,0.8);display:grid;place-items:center;z-index:40;pointer-events:none}
       .intro-inner{display:grid;gap:28px;justify-items:center}
       .intro .brand img{width:min(86vw,720px);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,0.6));opacity:0;transform:translateY(-8px);animation:fadeInUp 1.4s ease both .2s}
       .intro .logo-bottom{width:min(56vw,480px);opacity:0;transform:translateY(8px);animation:fadeInDown 1.4s ease both .6s}
@@ -77,14 +77,20 @@
 
     <script type="module" src="./scripts/quiz.js"></script>
     <script>
-      // 片頭延長到5秒，淡出 1.5 秒
-      setTimeout(()=>{
+      // 片頭延長到5秒，淡出 1.5 秒；允許點擊略過
+      function hideIntro(){
         const el = document.getElementById('intro');
         if (!el) return;
         el.style.transition = 'opacity 1.5s ease';
         el.style.opacity = '0';
         setTimeout(()=>{ el.style.display = 'none'; }, 1600);
-      }, 5000);
+      }
+      setTimeout(hideIntro, 5000);
+      // 點擊任意處略過（intro 有 pointer-events:none，因此綁在 document）
+      document.addEventListener('click', ()=>{
+        const el = document.getElementById('intro');
+        if (el && el.style.display !== 'none') hideIntro();
+      }, { once:true });
     </script>
   </body>
 </html>

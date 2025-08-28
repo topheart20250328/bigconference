@@ -21,20 +21,22 @@
       .controls { position: fixed; right: 16px; top: 16px; display:flex; gap: 8px; }
       button.switch, button.leaderboard { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 8px 10px; font-size: 14px; cursor: pointer; opacity:.65 }
       button.switch.active { opacity: .95; }
-      #qrcode { width: clamp(320px, 50vmin, 720px); height: clamp(320px, 50vmin, 720px); display: grid; place-items: center; background: rgba(0,0,0,0.2); border-radius: 16px; }
-      .note { position: fixed; left: 16px; bottom: 16px; color: var(--muted); font-size: clamp(12px, 2.2vw, 16px); }
+      #qrcode { width: clamp(360px, 56vmin, 840px); height: clamp(360px, 56vmin, 840px); display: grid; place-items: center; background: rgba(0,0,0,0.2); border-radius: 16px; }
+      .note { position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px; color: var(--text); font-size: clamp(18px, 3.2vw, 28px); text-align: center; opacity:.95; text-shadow: 0 2px 12px rgba(0,0,0,.45); }
       .link { margin-top: 8px; }
       .link a { color: #60a5fa; text-decoration: none; font-size: 14px; }
       .link a:hover { text-decoration: underline; }
       .corner-logo { position: fixed; right: 16px; bottom: 16px; width: clamp(48px, 14vw, 92px); height: auto; opacity: .95; }
-      .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
-      .modal { background: rgba(17,24,39,0.96); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-width: 720px; width: 100%; max-height: 80vh; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+      .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; padding: 8px; z-index: 50; }
+      .modal { background: rgba(17,24,39,0.98); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-width: 1200px; width: 98vw; max-height: 94vh; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
       .modal header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); }
-      .modal h3 { margin: 0; font-size: 18px; }
+      .modal h3 { margin: 0; font-size: 20px; }
       .modal .content { overflow: auto; }
-      .modal table { width: 100%; border-collapse: collapse; }
-      .modal th, .modal td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 14px; text-align: left; }
-      .modal .footer { padding: 10px 16px; display: flex; gap: 8px; justify-content: flex-end; }
+      .modal table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      .modal th, .modal td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; text-align: left; }
+      .modal th:nth-child(1), .modal td:nth-child(1) { width: 70%; }
+      .modal th:nth-child(2), .modal td:nth-child(2) { width: 30%; text-align: right; }
+      .modal .footer { padding: 8px 12px; display: flex; gap: 8px; justify-content: flex-end; }
       .close-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: var(--text); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
     </style>
   </head>
@@ -56,7 +58,8 @@
 
     <script src="./scripts/supabase-config.js"></script>
     <script type="module">
-      import { getSupabase } from './scripts/supabase-client.js';
+      window.addEventListener('DOMContentLoaded', async () => {
+      const { getSupabase } = await import('./scripts/supabase-client.js');
       // Build both targets with cache-busting version
       const base = location.origin + location.pathname.replace(/index\.html?$/, '');
       const sp = new URLSearchParams(location.search);
@@ -104,10 +107,10 @@
       function showLink(target) { try { box.innerHTML=''; } catch{} linkWrap.style.display='block'; linkWrap.innerHTML = `若 QR 未顯示，請點此開啟：<a href="${target}">${target}</a>`; }
 
       // Leaderboard modal logic (same as before)
-      const backdrop = document.getElementById('modalBackdrop');
+  const backdrop = document.getElementById('modalBackdrop');
       const tableBody = document.getElementById('lbBody');
       const pageInfo = document.getElementById('lbPage');
-      let lbData = []; let page = 1; const pageSize = 50;
+  let lbData = []; let page = 1; const pageSize = 300;
       async function loadLeaderboard() {
         const supa = await getSupabase();
         if (supa) {
@@ -120,26 +123,27 @@
       }
       async function openLeaderboard() {
         backdrop.style.display='flex';
+        box.style.display = 'none';
         if (!lbData.length) { lbData = await loadLeaderboard(); renderLB(); } else { renderLB(); }
       }
-      function closeLeaderboard(){ backdrop.style.display='none'; }
+      function closeLeaderboard(){ backdrop.style.display='none'; box.style.display = 'grid'; }
       function renderLB(){
         lbData.sort((a,b)=>(b.score||0)-(a.score||0));
         const total = lbData.length; const pages = Math.max(1, Math.ceil(total/pageSize)); page = Math.min(Math.max(1,page), pages);
         const start=(page-1)*pageSize; const slice=lbData.slice(start,start+pageSize);
-        tableBody.innerHTML = slice.map((it,i)=>`<tr><td>${start+i+1}</td><td>${escapeHtml(it.name||'')}</td><td>${it.score||0}</td></tr>`).join('') || '<tr><td colspan="3">暫無資料</td></tr>';
-        pageInfo.textContent = `第 ${page} / ${pages} 頁（共 ${total} 人）`;
+        tableBody.innerHTML = slice.map((it)=>`<tr><td>${escapeHtml(it.name||'')}</td><td>${it.score||0}</td></tr>`).join('') || '<tr><td colspan="2">暫無資料</td></tr>';
+        pageInfo.textContent = pages > 1 ? `第 ${page} / ${pages} 頁（共 ${total} 人）` : `共 ${total} 人`;
       }
       function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
       document.getElementById('lbClose').onclick = closeLeaderboard;
       document.getElementById('lbPrev').onclick = ()=>{ page--; renderLB(); };
       document.getElementById('lbNext').onclick = ()=>{ page++; renderLB(); };
-      btnLeaderboard.onclick = openLeaderboard;
+  btnLeaderboard.onclick = openLeaderboard;
 
-      // Admin: click brand to clear leaderboard + device quiz state (not verse bind)
+      // Admin: click brand to clear leaderboard + device state (also clears verse/quote binding locally)
       document.getElementById('brand').onclick = async () => {
-        const ok = confirm('確定要清除排行榜與所有裝置的遊戲紀錄嗎？（不影響經文語錄裝置綁定）');
+        const ok = confirm('確定要清除排行榜與所有裝置的遊戲紀錄嗎？（同時清除本機經文/語錄裝置綁定）');
         if (!ok) return;
         try {
           if (window.SUPABASE_ADMIN_CLEAR_URL) {
@@ -149,16 +153,25 @@
             }
             const res = await fetch(window.SUPABASE_ADMIN_CLEAR_URL, {
               method: 'POST',
-              headers: token ? { 'x-admin-token': token } : undefined,
+              headers: { 'content-type': 'application/json', ...(token ? { 'x-admin-token': token } : {}) },
+              body: JSON.stringify({ resetAll: true }),
             });
             if (!res.ok) throw new Error('clear failed');
-            alert('已請求清除排行榜（伺服器）。');
-          } else {
-            // Local-only clear: remove quiz LS keys on this device
+            // 也清除此裝置的測驗與經文/語錄綁定
             localStorage.removeItem('rs_player_name_v1');
             localStorage.removeItem('rs_quiz_completed_v1');
             localStorage.removeItem('rs_quiz_result_v1');
-            alert('已清除此裝置的遊戲紀錄。本功能需後端才能清除全體排行榜。');
+            localStorage.removeItem('rs_device_key_v2');
+            localStorage.removeItem('rs_bind_code_v1');
+            alert('已請求清除排行榜，並清除此裝置的綁定與測驗紀錄。');
+          } else {
+            // Local-only clear: remove quiz LS keys on this device + verse/quote device binds
+            localStorage.removeItem('rs_player_name_v1');
+            localStorage.removeItem('rs_quiz_completed_v1');
+            localStorage.removeItem('rs_quiz_result_v1');
+            localStorage.removeItem('rs_device_key_v2');
+            localStorage.removeItem('rs_bind_code_v1');
+            alert('已清除此裝置的遊戲與裝置綁定。若要清除雲端排行榜，請設定後端 Function。');
           }
         } catch (e) {
           alert('清除失敗，請稍後再試。');
@@ -166,7 +179,8 @@
       };
 
       // First render
-      applyMode();
+  applyMode();
+  });
     </script>
 
     <div id="modalBackdrop" class="modal-backdrop">
@@ -177,7 +191,7 @@
         </header>
         <div class="content">
           <table>
-            <thead><tr><th>#</th><th>玩家</th><th>分數</th></tr></thead>
+            <thead><tr><th>玩家</th><th>分數</th></tr></thead>
             <tbody id="lbBody"></tbody>
           </table>
         </div>

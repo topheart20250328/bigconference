@@ -248,6 +248,7 @@ async function submitScore(name, score) {
     const { error } = await supa.from('leaderboard').upsert({ name, score, device_key: deviceKey }, { onConflict: 'device_key' });
     if (error) console.warn('submitScore error', error);
   } catch (e) { console.warn('submitScore ex', e); }
+}
 
 
 async function checkGlobalReset() {
