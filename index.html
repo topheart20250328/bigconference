@@ -6,37 +6,27 @@
     <title>BIG大特會 | 掃描開始</title>
     <meta name="description" content="掃描 QR Code 進入活動頁面" />
     <style>
-      :root {
-        --bg: #0f172a; /* slate-900 */
-        --muted: #94a3b8; /* slate-400 */
-        --text: #e5e7eb; /* gray-200 */
-        --accent-2: #60a5fa; /* blue-400 */
-      }
+      :root { --muted:#94a3b8; --text:#e5e7eb; }
       * { box-sizing: border-box; }
       body {
         margin: 0;
         font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif;
-        background:
-          linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.6)),
-          url('./image/background.jpg') center/cover no-repeat fixed;
+        background: linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('./image/background.jpg') center/cover no-repeat fixed;
         color: var(--text);
         min-height: 100vh; display: grid; place-items: center; padding: 24px;
       }
-      .container { width: 100%; max-width: 1200px; display: grid; gap: 24px; justify-items: center; padding: 2vh 2vw; position: relative; }
-      header { text-align: center; display: grid; gap: 8px; justify-items: center; }
-      .brand img { width: clamp(220px, 44vw, 560px); height:auto; display:block; filter: drop-shadow(0 6px 24px rgba(0,0,0,0.45)); }
-      .subtitle { color: var(--text); font-size: clamp(18px, 3.2vw, 28px); opacity: .95; letter-spacing: .06em; text-align:center; }
-      .controls { display:flex; gap: 12px; flex-wrap: wrap; justify-content:center; }
-      button.switch, button.leaderboard { background: rgba(255,255,255,0.08); color: var(--text); border: 1px solid rgba(255,255,255,0.18); border-radius: 999px; padding: 10px 16px; font-size: clamp(14px, 2.2vw, 16px); cursor: pointer; backdrop-filter: blur(4px); }
-      button.switch.active { background: rgba(34,197,94,0.25); border-color: rgba(34,197,94,0.5); }
-      #qrcode { width: clamp(260px, 42vmin, 560px); height: clamp(260px, 42vmin, 560px); display: grid; place-items: center; background: rgba(0,0,0,0.2); border-radius: 16px; }
-      .note { color: var(--muted); font-size: clamp(14px, 2.2vw, 20px); text-align: center; }
+      .container { width: 100%; max-width: 1400px; height: 100%; min-height: 84vh; display: grid; place-items: center; position: relative; }
+      .brand { position: fixed; left: 16px; top: 16px; cursor: pointer; }
+      .brand img { width: clamp(180px, 28vw, 420px); height:auto; filter: drop-shadow(0 6px 24px rgba(0,0,0,0.45)); }
+      .controls { position: fixed; right: 16px; top: 16px; display:flex; gap: 8px; }
+      button.switch, button.leaderboard { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 8px 10px; font-size: 14px; cursor: pointer; opacity:.65 }
+      button.switch.active { opacity: .95; }
+      #qrcode { width: clamp(320px, 50vmin, 720px); height: clamp(320px, 50vmin, 720px); display: grid; place-items: center; background: rgba(0,0,0,0.2); border-radius: 16px; }
+      .note { position: fixed; left: 16px; bottom: 16px; color: var(--muted); font-size: clamp(12px, 2.2vw, 16px); }
       .link { margin-top: 8px; }
-      .link a { color: var(--accent-2); text-decoration: none; font-size: clamp(14px, 2vw, 18px); }
+      .link a { color: #60a5fa; text-decoration: none; font-size: 14px; }
       .link a:hover { text-decoration: underline; }
       .corner-logo { position: fixed; right: 16px; bottom: 16px; width: clamp(48px, 14vw, 92px); height: auto; opacity: .95; }
-
-      /* Leaderboard modal */
       .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
       .modal { background: rgba(17,24,39,0.96); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-width: 720px; width: 100%; max-height: 80vh; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
       .modal header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); }
@@ -50,36 +40,29 @@
   </head>
   <body>
     <div class="container">
-      <header>
-        <div class="brand"><img src="./image/BIG大特會-white.png" alt="BIG大特會" /></div>
-        <div class="subtitle" id="subtitle">經文語錄</div>
-        <div class="controls">
-          <button id="btnVerse" class="switch active" type="button">經文語錄</button>
-          <button id="btnQuiz" class="switch" type="button">大格局！大突破！大夢想！</button>
-          <button id="btnLeaderboard" class="leaderboard" type="button">排行榜</button>
-        </div>
-      </header>
+      <div class="brand" id="brand">
+        <img src="./image/BIG大特會-white.png" alt="BIG大特會" title="點擊清除排行榜與裝置紀錄（僅限遊戲）" />
+      </div>
+      <div class="controls">
+        <button id="btnVerse" class="switch active" type="button">文</button>
+        <button id="btnQuiz" class="switch" type="button">題</button>
+        <button id="btnLeaderboard" class="leaderboard" type="button">分</button>
+      </div>
       <div id="qrcode"></div>
-      <div class="note">請用手機掃描上方 QR</div>
       <div class="link" id="fallbackLink" style="display:none"></div>
+      <div class="note">請用手機掃描上方 QR</div>
       <img class="corner-logo" src="./image/topchurchlogo.png" alt="Top Church" />
     </div>
 
-    <script>
+    <script src="./scripts/supabase-config.js"></script>
+    <script type="module">
+      import { getSupabase } from './scripts/supabase-client.js';
       // Build both targets with cache-busting version
       const base = location.origin + location.pathname.replace(/index\.html?$/, '');
       const sp = new URLSearchParams(location.search);
-      const ver = sp.get('v') || (function(){
-        const d = new Date();
-        const pad = (n) => String(n).padStart(2, '0');
-        return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}`;
-      })();
-      const targets = {
-        verse: `${base}view.html?v=${encodeURIComponent(ver)}`,
-        quiz: `${base}quiz.html?v=${encodeURIComponent(ver)}`,
-      };
+      const ver = sp.get('v') || (()=>{ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}`; })();
+      const targets = { verse: `${base}view.html?v=${encodeURIComponent(ver)}`, quiz: `${base}quiz.html?v=${encodeURIComponent(ver)}` };
 
-      const subtitle = document.getElementById('subtitle');
       const box = document.getElementById('qrcode');
       const linkWrap = document.getElementById('fallbackLink');
       const btnVerse = document.getElementById('btnVerse');
@@ -92,7 +75,7 @@
       function renderQR(target) {
         box.innerHTML = '';
         linkWrap.style.display = 'none';
-        const size = Math.min(box.clientWidth, box.clientHeight) || 320;
+        const size = Math.min(box.clientWidth, box.clientHeight) || 400;
         const img = new Image();
         img.alt = 'Scan QR to open';
         img.width = size; img.height = size;
@@ -101,13 +84,7 @@
         img.onerror = () => {
           const script = document.createElement('script');
           script.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
-          script.onload = () => {
-            try {
-              box.innerHTML = '';
-              // eslint-disable-next-line no-undef
-              new QRCode(box, { text: target, width: size, height: size, correctLevel: QRCode.CorrectLevel.M });
-            } catch (e) { showLink(target); }
-          };
+          script.onload = () => { try { box.innerHTML=''; new QRCode(box,{ text:target, width:size, height:size, correctLevel: QRCode.CorrectLevel.M }); } catch { showLink(target); } };
           script.onerror = () => showLink(target);
           document.head.appendChild(script);
         };
@@ -116,51 +93,41 @@
 
       function applyMode() {
         if (mode === 'quiz') {
-          btnQuiz.classList.add('active');
-          btnVerse.classList.remove('active');
-          subtitle.textContent = '大格局！大突破！大夢想！';
-          renderQR(targets.quiz);
+          btnQuiz.classList.add('active'); btnVerse.classList.remove('active'); renderQR(targets.quiz);
         } else {
-          btnVerse.classList.add('active');
-          btnQuiz.classList.remove('active');
-          subtitle.textContent = '經文語錄';
-          renderQR(targets.verse);
+          btnVerse.classList.add('active'); btnQuiz.classList.remove('active'); renderQR(targets.verse);
         }
       }
-
       btnVerse.onclick = () => { mode = 'verse'; localStorage.setItem(LS_KEY, mode); applyMode(); };
       btnQuiz.onclick = () => { mode = 'quiz'; localStorage.setItem(LS_KEY, mode); applyMode(); };
 
-      function showLink(target) {
-        try { box.innerHTML = ''; } catch {}
-        linkWrap.style.display = 'block';
-        linkWrap.innerHTML = `若 QR 未顯示，請點此開啟：<a href="${target}">${target}</a>`;
-      }
+      function showLink(target) { try { box.innerHTML=''; } catch{} linkWrap.style.display='block'; linkWrap.innerHTML = `若 QR 未顯示，請點此開啟：<a href="${target}">${target}</a>`; }
 
-      // Leaderboard modal
+      // Leaderboard modal logic (same as before)
       const backdrop = document.getElementById('modalBackdrop');
       const tableBody = document.getElementById('lbBody');
       const pageInfo = document.getElementById('lbPage');
-      let lbData = [];
-      let page = 1; const pageSize = 50;
-      function openLeaderboard() {
-        backdrop.style.display = 'flex';
-        if (!lbData.length) {
-          fetch('./leaderboard.json?v=' + encodeURIComponent(ver)).then(r => r.ok ? r.json() : []).then(arr => {
-            lbData = Array.isArray(arr) ? arr : [];
-            lbData.sort((a,b)=> (b.score||0) - (a.score||0));
-            renderLB();
-          }).catch(()=>{ lbData = []; renderLB(); });
-        } else { renderLB(); }
+      let lbData = []; let page = 1; const pageSize = 50;
+      async function loadLeaderboard() {
+        const supa = await getSupabase();
+        if (supa) {
+          const { data, error } = await supa.from('leaderboard').select('name,score').order('score', { ascending:false }).limit(1000);
+          if (!error && Array.isArray(data)) return data;
+        }
+        // fallback static file
+        try { const r = await fetch('./leaderboard.json?v='+encodeURIComponent(ver)); if (r.ok) return await r.json(); } catch {}
+        return [];
       }
-      function closeLeaderboard() { backdrop.style.display = 'none'; }
-      function renderLB() {
-        const total = lbData.length;
-        const pages = Math.max(1, Math.ceil(total / pageSize));
-        page = Math.min(Math.max(1, page), pages);
-        const start = (page-1)*pageSize;
-        const slice = lbData.slice(start, start+pageSize);
-        tableBody.innerHTML = slice.map((it, i)=>`<tr><td>${start+i+1}</td><td>${escapeHtml(it.name||'')}</td><td>${it.score||0}</td></tr>`).join('') || '<tr><td colspan="3">暫無資料</td></tr>';
+      async function openLeaderboard() {
+        backdrop.style.display='flex';
+        if (!lbData.length) { lbData = await loadLeaderboard(); renderLB(); } else { renderLB(); }
+      }
+      function closeLeaderboard(){ backdrop.style.display='none'; }
+      function renderLB(){
+        lbData.sort((a,b)=>(b.score||0)-(a.score||0));
+        const total = lbData.length; const pages = Math.max(1, Math.ceil(total/pageSize)); page = Math.min(Math.max(1,page), pages);
+        const start=(page-1)*pageSize; const slice=lbData.slice(start,start+pageSize);
+        tableBody.innerHTML = slice.map((it,i)=>`<tr><td>${start+i+1}</td><td>${escapeHtml(it.name||'')}</td><td>${it.score||0}</td></tr>`).join('') || '<tr><td colspan="3">暫無資料</td></tr>';
         pageInfo.textContent = `第 ${page} / ${pages} 頁（共 ${total} 人）`;
       }
       function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
@@ -169,6 +136,34 @@
       document.getElementById('lbPrev').onclick = ()=>{ page--; renderLB(); };
       document.getElementById('lbNext').onclick = ()=>{ page++; renderLB(); };
       btnLeaderboard.onclick = openLeaderboard;
+
+      // Admin: click brand to clear leaderboard + device quiz state (not verse bind)
+      document.getElementById('brand').onclick = async () => {
+        const ok = confirm('確定要清除排行榜與所有裝置的遊戲紀錄嗎？（不影響經文語錄裝置綁定）');
+        if (!ok) return;
+        try {
+          if (window.SUPABASE_ADMIN_CLEAR_URL) {
+            let token = window.SUPABASE_ADMIN_TOKEN || '';
+            if (!token) {
+              token = prompt('請輸入管理密鑰（Edge Function 將驗證 x-admin-token）', '');
+            }
+            const res = await fetch(window.SUPABASE_ADMIN_CLEAR_URL, {
+              method: 'POST',
+              headers: token ? { 'x-admin-token': token } : undefined,
+            });
+            if (!res.ok) throw new Error('clear failed');
+            alert('已請求清除排行榜（伺服器）。');
+          } else {
+            // Local-only clear: remove quiz LS keys on this device
+            localStorage.removeItem('rs_player_name_v1');
+            localStorage.removeItem('rs_quiz_completed_v1');
+            localStorage.removeItem('rs_quiz_result_v1');
+            alert('已清除此裝置的遊戲紀錄。本功能需後端才能清除全體排行榜。');
+          }
+        } catch (e) {
+          alert('清除失敗，請稍後再試。');
+        }
+      };
 
       // First render
       applyMode();

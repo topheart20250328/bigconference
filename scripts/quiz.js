@@ -101,14 +101,19 @@ function isChineseName(s) {
   return /^[\u4E00-\u9FFF·]{2,12}$/.test(t);
 }
 
-// One play rule
-const savedCompleted = localStorage.getItem(LS.completed);
-const savedResult = localStorage.getItem(LS.result);
-if (savedCompleted && savedResult) {
-  try {
-    const r = JSON.parse(savedResult);
-    showResult(r.name, r.score);
-  } catch { /* ignore */ }
+const LS_RESET = 'rs_quiz_last_reset_v1';
+
+// Deferred init to allow global reset check first
+async function initSavedState() {
+  await checkGlobalReset();
+  const savedCompleted = localStorage.getItem(LS.completed);
+  const savedResult = localStorage.getItem(LS.result);
+  if (savedCompleted && savedResult) {
+    try {
+      const r = JSON.parse(savedResult);
+      showResult(r.name, r.score);
+    } catch { /* ignore */ }
+  }
 }
 
 els.startBtn.addEventListener('click', () => {
@@ -215,13 +220,14 @@ function finish() {
   // Persist completion
   localStorage.setItem(LS.completed, deviceKey);
   localStorage.setItem(LS.result, JSON.stringify({ name, score: totalScore, t: Date.now(), deviceKey }));
-  // Optional: post to leaderboard.json cannot be done statically; requires backend. We leave as client-only.
+  // Submit to leaderboard if configured
+  submitScore(name, totalScore);
 }
 
 function showResult(name, sc) {
   els.resultCard.style.display = '';
   els.score.textContent = String(sc);
-  els.resultName.textContent = name ? `玩家：${name}` : '';
+  els.resultName.textContent = name || '';
   // Hide start/quiz if present
   els.nameCard.style.display = 'none';
   els.quizCard.style.display = 'none';
@@ -229,7 +235,40 @@ function showResult(name, sc) {
 
 // If name exists and not completed, prefill
 const storedName = localStorage.getItem(LS.playerName) || '';
-if (storedName) {
-  els.playerName.value = storedName;
+if (storedName) { els.playerName.value = storedName; }
+
+import('../scripts/supabase-client.js').then(m => m.getSupabase && (window.__getSupa = m.getSupabase)).catch(()=>{});
+
+async function submitScore(name, score) {
+  try {
+    if (!window.__getSupa) return;
+    const supa = await window.__getSupa();
+    if (!supa) return;
+    // Ensure table has columns: name (text), score (int), device_key (text), created_at (timestamptz default now())
+    const { error } = await supa.from('leaderboard').upsert({ name, score, device_key: deviceKey }, { onConflict: 'device_key' });
+    if (error) console.warn('submitScore error', error);
+  } catch (e) { console.warn('submitScore ex', e); }
+
+
+async function checkGlobalReset() {
+  try {
+    if (!window.__getSupa) return;
+    const supa = await window.__getSupa();
+    if (!supa) return;
+    // config table: key (text pk), value (text), updated_at default now()
+    const { data, error } = await supa.from('config').select('value, updated_at').eq('key','quiz_reset_at').single();
+    if (error || !data) return;
+    const remoteTs = Date.parse(data.value || data.updated_at || '') || 0;
+    const localTs = Number(localStorage.getItem(LS_RESET) || '0');
+    if (remoteTs > localTs) {
+      // Clear local quiz locks
+      localStorage.removeItem(LS.completed);
+      localStorage.removeItem(LS.result);
+      localStorage.setItem(LS_RESET, String(remoteTs));
+    }
+  } catch { /* noop */ }
 }
+
+// Boot
+initSavedState();
 
