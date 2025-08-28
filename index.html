@@ -168,7 +168,12 @@
             }
             const res = await fetch(window.SUPABASE_ADMIN_CLEAR_URL, {
               method: 'POST',
-              headers: { 'content-type': 'application/json', ...(token ? { 'x-admin-token': token } : {}) },
+              headers: {
+                'content-type': 'application/json',
+                // Supabase Edge Functions 通常需要 Authorization Bearer（若 verify_jwt 開啟）
+                ...(window.SUPABASE_ANON_KEY ? { 'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}` } : {}),
+                ...(token ? { 'x-admin-token': token } : {}),
+              },
               body: JSON.stringify({ resetAll: true }),
             });
             if (!res.ok) throw new Error('clear failed');
