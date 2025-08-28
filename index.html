@@ -31,8 +31,11 @@
       .modal { background: rgba(17,24,39,0.98); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-width: 1200px; width: 98vw; max-height: 94vh; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
       .modal header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); }
       .modal h3 { margin: 0; font-size: 20px; }
-      .modal .content { overflow: auto; }
-      .modal table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .modal .content { overflow: auto; }
+  .columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 12px; }
+  .block { border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.03); }
+  .block h4 { margin: 0; padding: 8px 10px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); color: var(--muted); }
+  .modal table { width: 100%; border-collapse: collapse; table-layout: fixed; }
       .modal th, .modal td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; text-align: left; }
       .modal th:nth-child(1), .modal td:nth-child(1) { width: 70%; }
       .modal th:nth-child(2), .modal td:nth-child(2) { width: 30%; text-align: right; }
@@ -108,9 +111,11 @@
 
       // Leaderboard modal logic (same as before)
   const backdrop = document.getElementById('modalBackdrop');
-      const tableBody = document.getElementById('lbBody');
-      const pageInfo = document.getElementById('lbPage');
-  let lbData = []; let page = 1; const pageSize = 300;
+    const col1 = document.getElementById('lbCol1');
+    const col2 = document.getElementById('lbCol2');
+    const col3 = document.getElementById('lbCol3');
+    const pageInfo = document.getElementById('lbPage');
+  let lbData = []; let page = 1; const blocksPerPage = 3; const blockSize = 50;
       async function loadLeaderboard() {
         const supa = await getSupabase();
         if (supa) {
@@ -127,11 +132,21 @@
         if (!lbData.length) { lbData = await loadLeaderboard(); renderLB(); } else { renderLB(); }
       }
       function closeLeaderboard(){ backdrop.style.display='none'; box.style.display = 'grid'; }
+      function renderTable(rows){
+        return rows.length
+          ? `<table><thead><tr><th>玩家</th><th>分數</th></tr></thead><tbody>${rows.map(it=>`<tr><td>${escapeHtml(it.name||'')}</td><td style="text-align:right">${it.score||0}</td></tr>`).join('')}</tbody></table>`
+          : '<div style="padding:8px 10px;color:var(--muted)">暫無資料</div>';
+      }
       function renderLB(){
         lbData.sort((a,b)=>(b.score||0)-(a.score||0));
-        const total = lbData.length; const pages = Math.max(1, Math.ceil(total/pageSize)); page = Math.min(Math.max(1,page), pages);
-        const start=(page-1)*pageSize; const slice=lbData.slice(start,start+pageSize);
-        tableBody.innerHTML = slice.map((it)=>`<tr><td>${escapeHtml(it.name||'')}</td><td>${it.score||0}</td></tr>`).join('') || '<tr><td colspan="2">暫無資料</td></tr>';
+        const total = lbData.length; const pages = Math.max(1, Math.ceil(total/(blocksPerPage*blockSize))); page = Math.min(Math.max(1,page), pages);
+        const base = (page-1) * blocksPerPage * blockSize;
+        const b1 = lbData.slice(base, base+blockSize);
+        const b2 = lbData.slice(base+blockSize, base+2*blockSize);
+        const b3 = lbData.slice(base+2*blockSize, base+3*blockSize);
+        col1.innerHTML = `<div class="block"><h4>${b1.length? `${base+1}-${base+b1.length}`: '—'}</h4>${renderTable(b1)}</div>`;
+        col2.innerHTML = `<div class="block"><h4>${b2.length? `${base+blockSize+1}-${base+blockSize+b2.length}`: '—'}</h4>${renderTable(b2)}</div>`;
+        col3.innerHTML = `<div class="block"><h4>${b3.length? `${base+2*blockSize+1}-${base+2*blockSize+b3.length}`: '—'}</h4>${renderTable(b3)}</div>`;
         pageInfo.textContent = pages > 1 ? `第 ${page} / ${pages} 頁（共 ${total} 人）` : `共 ${total} 人`;
       }
       function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
@@ -190,10 +205,11 @@
           <button id="lbClose" class="close-btn" type="button">關閉</button>
         </header>
         <div class="content">
-          <table>
-            <thead><tr><th>玩家</th><th>分數</th></tr></thead>
-            <tbody id="lbBody"></tbody>
-          </table>
+          <div class="columns">
+            <div id="lbCol1"></div>
+            <div id="lbCol2"></div>
+            <div id="lbCol3"></div>
+          </div>
         </div>
         <div class="footer">
           <span id="lbPage" style="margin-right:auto"></span>

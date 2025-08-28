@@ -172,12 +172,40 @@ function buildWeightedArray(items, getWeight) {
   return out;
 }
 
+const LS_RESET = 'rs_global_last_reset_v1';
+
+async function getSupabase() {
+  try {
+    const m = await import('./supabase-client.js');
+    return m.getSupabase ? await m.getSupabase() : null;
+  } catch { return null; }
+}
+
+async function checkGlobalReset() {
+  try {
+    const supa = await getSupabase();
+    if (!supa) return;
+    const { data, error } = await supa.from('config').select('value, updated_at').eq('key','quiz_reset_at').single();
+    if (error || !data) return;
+    const remoteTs = Date.parse(data.value || data.updated_at || '') || 0;
+    const localTs = Number(localStorage.getItem(LS_RESET) || '0');
+    if (remoteTs > localTs) {
+      // Clear local device bindings for verse/quote and update marker
+      localStorage.removeItem(STATE_KEYS.deviceKey);
+      localStorage.removeItem(STATE_KEYS.bindCode);
+      localStorage.setItem(LS_RESET, String(remoteTs));
+    }
+  } catch {}
+}
+
 async function main() {
   const loading = document.getElementById('loading');
   const error = document.getElementById('error');
   const cards = document.getElementById('cards');
 
   try {
+  // Check remote reset flag (may clear local device/bind so do this before obtaining key)
+  await checkGlobalReset();
   const deviceKey = getOrCreateDeviceKey();
 
   // expose current key on UI if present

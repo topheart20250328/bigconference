@@ -127,7 +127,7 @@ els.startBtn.addEventListener('click', () => {
 });
 
 // Speed bonus meter
-const QUESTION_TIME = 5000; // 5s window for bonus
+const QUESTION_TIME = 10000; // 10s window for bonus
 let timerStart = 0;
 let rafId = 0;
 function startMeter() {
