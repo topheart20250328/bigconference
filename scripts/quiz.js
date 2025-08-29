@@ -195,9 +195,9 @@ function nextQuestion() {
   els.optB.textContent = `B. ${item.B}`;
   els.optC.textContent = `C. ${item.C}`;
 
-  els.optA.onclick = () => answer('A');
-  els.optB.onclick = () => answer('B');
-  els.optC.onclick = () => answer('C');
+  els.optA.onclick = (e) => { clickPop(e); answer('A'); };
+  els.optB.onclick = (e) => { clickPop(e); answer('B'); };
+  els.optC.onclick = (e) => { clickPop(e); answer('C'); };
 
   startMeter();
 }
@@ -279,8 +279,16 @@ function showResult(name, sc) {
     }
     els.detailBody.innerHTML = rows.join('');
   }
-  // FX
-  triggerFX(passed);
+  // FX strengthened
+  if (passed) {
+    triggerFX(true);
+    if (els.resultCard) { els.resultCard.classList.remove('sad'); els.resultCard.classList.add('celebrate'); setTimeout(()=>els.resultCard.classList.remove('celebrate'), 1000); }
+    floatingEmojis(['🎉','🍬','🍭','🎈','🌟'], 26, 3200);
+  } else {
+    triggerFX(false);
+    if (els.resultCard) { els.resultCard.classList.remove('celebrate'); els.resultCard.classList.add('sad'); setTimeout(()=>els.resultCard.classList.remove('sad'), 1000); }
+    floatingEmojis(['💔','😿','🥺','💢','🫠'], 18, 3200);
+  }
 }
 
 // If name exists and not completed, prefill
@@ -365,13 +373,13 @@ function startConfetti(){
     const resize = () => { canvas.width = innerWidth*dpr; canvas.height = innerHeight*dpr; canvas.style.width = innerWidth+'px'; canvas.style.height = innerHeight+'px'; };
     resize();
     const colors = ['#ff4fa3','#ffc93c','#7cd4ff','#a3e635','#f472b6'];
-    const N = 140;
+    const N = 200;
     const parts = Array.from({length:N},()=>({
       x: Math.random()*canvas.width,
       y: -Math.random()*canvas.height*0.5,
       r: 4 + Math.random()*6,
-      vx: -1 + Math.random()*2,
-      vy: 2 + Math.random()*3,
+      vx: -1.2 + Math.random()*2.4,
+      vy: 2.2 + Math.random()*3.2,
       rot: Math.random()*Math.PI*2,
       vr: (-0.1+Math.random()*0.2),
       color: colors[(Math.random()*colors.length)|0]
@@ -379,7 +387,7 @@ function startConfetti(){
     let running = true; const t0 = performance.now();
     const loop = () => {
       if (!running) return;
-      const t = performance.now()-t0; if (t>4000) running=false;
+      const t = performance.now()-t0; if (t>5200) running=false;
       ctx.clearRect(0,0,canvas.width,canvas.height);
       for (const p of parts){
         p.vy += 0.02*dpr; p.x += p.vx*dpr; p.y += p.vy*dpr; p.rot += p.vr;
@@ -400,10 +408,10 @@ function startFailFX(){
     const host = els.fxFail; if (!host) return;
     host.style.display = '';
     host.innerHTML = '';
-    const N = 16;
+    const N = 28;
     for (let i=0;i<N;i++){
       const span = document.createElement('span');
-      span.textContent = Math.random()<0.5 ? '💔' : '😭';
+      span.textContent = ['💔','😭','😿','🥺'][Math.floor(Math.random()*4)];
       const left = Math.round(Math.random()*100);
       const duration = (3+Math.random()*2).toFixed(2);
       span.style.cssText = `position:absolute;left:${left}vw;top:-10vh;font-size:${24+Math.random()*24}px;animation:fall${i} ${duration}s ease-in forwards`;
@@ -414,6 +422,47 @@ function startFailFX(){
       setTimeout(()=>{ key.remove(); }, duration*1000+500);
     }
     setTimeout(()=>{ host.style.display='none'; if (els.resultCard) els.resultCard.classList.remove('shake'); }, 3500);
+  }catch{}
+}
+
+// Cute click particles
+function clickPop(e){
+  try{
+    const emojis = ['🍬','🍭','✨','🌟','💖','🍪','🧁'];
+    const el = document.createElement('div'); el.className='pop';
+    el.style.left = e.clientX+'px'; el.style.top = e.clientY+'px';
+    const count = 4 + Math.floor(Math.random()*3);
+    for(let i=0;i<count;i++){
+      const s = document.createElement('span');
+      s.textContent = emojis[(Math.random()*emojis.length)|0];
+      s.style.transform = `translate(${(Math.random()*30-15).toFixed(0)}px, ${(Math.random()*-20-10).toFixed(0)}px)`;
+      s.style.fontSize = (16+Math.random()*12)+'px';
+      el.appendChild(s);
+    }
+    document.body.appendChild(el);
+    setTimeout(()=>{ el.remove(); }, 900);
+  }catch{}
+}
+
+// Floating emojis helper
+function floatingEmojis(icons, n, ms){
+  try{
+    const host = els.fxFail; if (!host) return;
+    host.style.display='';
+    host.innerHTML='';
+    for(let i=0;i<n;i++){
+      const span=document.createElement('span');
+      span.textContent = icons[i%icons.length];
+      const left = Math.round(Math.random()*100);
+      const duration = (2.2+Math.random()*1.8).toFixed(2);
+      span.style.cssText = `position:absolute;left:${left}vw;top:110vh;font-size:${22+Math.random()*22}px;animation:rise${i} ${duration}s ease-out forwards`;
+      host.appendChild(span);
+      const key = document.createElement('style');
+      key.textContent = `@keyframes rise${i}{to{transform:translateY(-130vh) rotate(${(Math.random()*40-20).toFixed(1)}deg);opacity:0.1}}`;
+      document.head.appendChild(key);
+      setTimeout(()=>{ key.remove(); }, duration*1000+500);
+    }
+    setTimeout(()=>{ host.style.display='none'; }, ms||3000);
   }catch{}
 }
 
