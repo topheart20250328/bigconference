@@ -95,6 +95,7 @@ const els = {
   failBadge: document.getElementById('failBadge'),
   detailBody: document.getElementById('detailBody'),
   playAgainBtn: document.getElementById('playAgainBtn'),
+  goHomeBtn: document.getElementById('goHomeBtn'),
   fxCanvas: document.getElementById('fxCanvas'),
   fxFail: document.getElementById('fxFail'),
 };
@@ -189,6 +190,10 @@ function startQuiz(name) {
 function nextQuestion() {
   const stage = STAGES[currentStage];
   const item = stage.items[currentIndex];
+  // Theme per stage (1..3)
+  const body = document.body;
+  body.classList.remove('theme-1','theme-2','theme-3');
+  body.classList.add(`theme-${currentStage+1}`);
   els.stageName.textContent = stage.name;
   els.question.textContent = `${currentIndex+1}. ${item.q}`;
   els.optA.textContent = `A. ${item.A}`;
@@ -200,12 +205,6 @@ function nextQuestion() {
   els.optC.onclick = (e) => { clickPop(e); answer('C'); };
 
   startMeter();
-  // apply stage color class
-  try {
-    const qc = els.quizCard;
-    qc.classList.remove('stage-0','stage-1','stage-2');
-    qc.classList.add(`stage-${currentStage}`);
-  } catch {}
 }
 
 function answer(choice) {
@@ -363,6 +362,16 @@ if (els.playAgainBtn) {
     const name = localStorage.getItem(LS.playerName) || '';
     els.resultCard.style.display = 'none';
     startQuiz(name);
+  });
+}
+
+// Go home: return to start screen with rules
+if (els.goHomeBtn) {
+  els.goHomeBtn.addEventListener('click', () => {
+    els.resultCard.style.display = 'none';
+    els.quizCard.style.display = 'none';
+    els.nameCard.style.display = '';
+    document.body.classList.remove('theme-1','theme-2','theme-3');
   });
 }
 
