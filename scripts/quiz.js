@@ -200,6 +200,12 @@ function nextQuestion() {
   els.optC.onclick = (e) => { clickPop(e); answer('C'); };
 
   startMeter();
+  // apply stage color class
+  try {
+    const qc = els.quizCard;
+    qc.classList.remove('stage-0','stage-1','stage-2');
+    qc.classList.add(`stage-${currentStage}`);
+  } catch {}
 }
 
 function answer(choice) {
