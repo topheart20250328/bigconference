@@ -8,11 +8,12 @@
       /* Candy cartoon theme */
       :root { --bg1:#fff7f9; --bg2:#f2fbff; --bg3:#f5fff7; --card:#ffffff; --border:#e9eef5; --muted:#6b7280; --text:#334155; --good:#22c55e; --bad:#ef4444; --primary:#7cd4ff; --accent:#ff9bd4; --yellow:#fde047; --green:#86efac; --orange:#fbbf24; }
       *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans TC,PingFang TC,Microsoft JhengHei,sans-serif;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;background:
+      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans TC,PingFang TC,Microsoft JhengHei,sans-serif;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;background:
         radial-gradient(1200px 600px at 15% -10%, rgba(255,155,212,.35), transparent 60%),
         radial-gradient(1200px 600px at 85% -10%, rgba(124,212,255,.35), transparent 60%),
         radial-gradient(800px 400px at 20% 110%, rgba(163,230,53,.30), transparent 60%),
         radial-gradient(700px 350px at 80% 115%, rgba(245,158,11,.25), transparent 60%),
+        radial-gradient(520px 320px at 100% 100%, rgba(2,6,23,.55), transparent 65%),
         linear-gradient(180deg, #fff, #fbfaff)}
   /* removed stripes overlay for comfort */
       .container{width:100%;max-width:820px;display:grid;gap:16px}
@@ -27,8 +28,7 @@
       .meter-wrap{height:16px;background:#f1f5f9;border-radius:999px;overflow:hidden;border:2px solid #eaeef2}
       .meter{height:100%;width:100%}
       .hint{color:var(--muted);font-size:14px;text-align:center}
-  .corner-badge{position:fixed;right:12px;bottom:12px;z-index:5;background:linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,255,255,.85));border:2px solid #e5e7eb;border-radius:16px;padding:8px 10px;box-shadow:0 8px 22px rgba(0,0,0,.12);backdrop-filter:blur(6px)}
-  .corner-badge img{width:64px;height:auto;display:block}
+  .corner-logo{position:fixed;right:12px;bottom:12px;width:72px;height:auto;opacity:.98;filter:drop-shadow(0 2px 10px rgba(0,0,0,.35))}
       .intro{position:fixed;inset:0;background:linear-gradient(0deg,rgba(255,255,255,.16),rgba(255,255,255,.16)),url('./image/background.jpg') center/cover no-repeat fixed;display:grid;place-items:center;z-index:40;pointer-events:none}
       .intro-inner{display:grid;gap:28px;justify-items:center}
       .intro .brand img{width:min(86vw,720px);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,.35));opacity:0;transform:translateY(-8px);animation:fadeInUp 1.0s ease both .2s}
@@ -135,7 +135,7 @@
       </div>
     </div>
 
-  <div class="corner-badge"><img src="./image/topchurchlogo.png" alt="Top Church" /></div>
+  <img class="corner-logo" src="./image/topchurchlogo.png" alt="Top Church" />
     <canvas id="fxCanvas" class="fx-canvas"></canvas>
     <div id="fxFail" class="fx-fail"></div>
 
