@@ -90,6 +90,13 @@ const els = {
   resultCard: document.getElementById('resultCard'),
   score: document.getElementById('score'),
   resultName: document.getElementById('resultName'),
+  resultTitle: document.getElementById('resultTitle'),
+  passBadge: document.getElementById('passBadge'),
+  failBadge: document.getElementById('failBadge'),
+  detailBody: document.getElementById('detailBody'),
+  playAgainBtn: document.getElementById('playAgainBtn'),
+  fxCanvas: document.getElementById('fxCanvas'),
+  fxFail: document.getElementById('fxFail'),
 };
 
 // Validation: Chinese-only (CJK)
@@ -107,23 +114,22 @@ function currentSalt() { return String(localStorage.getItem(LS_RESET) || ''); }
 // Deferred init to allow global reset check first
 async function initSavedState() {
   await checkGlobalReset();
-  const savedCompleted = localStorage.getItem(LS.completed);
-  const savedResult = localStorage.getItem(LS.result);
-  if (savedCompleted && savedResult) {
-    try {
-      const r = JSON.parse(savedResult);
-      showResult(r.name, r.score);
-    } catch { /* ignore */ }
-  }
+  // 允許重複遊玩：不自動顯示結果，於名稱存在時僅鎖定名稱輸入
 }
 
 els.startBtn.addEventListener('click', () => {
-  const name = String(els.playerName.value || '').trim();
-  if (!isChineseName(name)) {
-    alert('請輸入中文全名（2-12字）');
-    return;
+  let name = String(els.playerName.value || '').trim();
+  const stored = localStorage.getItem(LS.playerName) || '';
+  if (stored) {
+    name = stored; // 名稱鎖定
+  } else {
+    if (!isChineseName(name)) {
+      alert('請輸入中文全名（2-12字）');
+      return;
+    }
+    localStorage.setItem(LS.playerName, name);
+    try { els.playerName.value = name; els.playerName.readOnly = true; els.playerName.disabled = true; } catch {}
   }
-  localStorage.setItem(LS.playerName, name);
   startQuiz(name);
 });
 
@@ -160,8 +166,21 @@ let currentStage = 0;
 let currentIndex = 0;
 let stageCorrect = 0;
 let totalScore = 0;
+let qCounter = 0;
+const details = []; // per-question and bonus entries
+const PASS_SCORE = 5500;
+
+function resetQuizState(){
+  currentStage = 0;
+  currentIndex = 0;
+  stageCorrect = 0;
+  totalScore = 0;
+  qCounter = 0;
+  details.length = 0;
+}
 
 function startQuiz(name) {
+  resetQuizState();
   els.nameCard.style.display = 'none';
   els.quizCard.style.display = '';
   nextQuestion();
@@ -193,8 +212,10 @@ function answer(choice) {
     const bonus = computeBonus(msLeft); // 0..100
     gained = 100 + bonus;
     stageCorrect += 1;
+    details.push({ type:'q', no: (++qCounter), stage: stage.name, status: '✔ 正確', gained, bonus, msLeft });
   } else {
     gained = 0; // no base for wrong? Requirements: base 100 per Q only if correct? The prompt implies base for each question; we assume only correct gets base.
+    details.push({ type:'q', no: (++qCounter), stage: stage.name, status: '✘ 錯誤', gained, bonus: 0, msLeft });
   }
   totalScore += gained;
 
@@ -202,7 +223,10 @@ function answer(choice) {
   currentIndex += 1;
   if (currentIndex >= 10) {
     // Stage end bonus if perfect
-    if (stageCorrect === 10) totalScore += 500;
+    if (stageCorrect === 10) {
+      totalScore += 500;
+      details.push({ type:'bonus', stage: STAGES[currentStage].name, text: `${STAGES[currentStage].name} 全對加成 +500` });
+    }
     // Reset for next stage
     currentStage += 1;
     currentIndex = 0;
@@ -233,11 +257,38 @@ function showResult(name, sc) {
   // Hide start/quiz if present
   els.nameCard.style.display = 'none';
   els.quizCard.style.display = 'none';
+  // Pass/Fail badges
+  const passed = sc >= PASS_SCORE;
+  if (els.passBadge && els.failBadge) {
+    els.passBadge.style.display = passed ? '' : 'none';
+    els.failBadge.style.display = passed ? 'none' : '';
+  }
+  if (els.resultTitle) {
+    els.resultTitle.textContent = passed ? '太猛了！滿滿高分～' : '差一點點！再試一次';
+  }
+  // Details table
+  if (els.detailBody) {
+    const rows = [];
+    for (const d of details) {
+      if (d.type === 'q') {
+        const secLeft = (d.msLeft/1000).toFixed(1);
+        rows.push(`<tr><td>${d.no}</td><td style="color:${d.status.includes('✔')?'#16a34a':'#ef4444'}">${d.status}</td><td>${d.gained}</td><td>剩餘 ${secLeft}s</td></tr>`);
+      } else if (d.type === 'bonus') {
+        rows.push(`<tr><td colspan="4" style="color:#ff4fa3;font-weight:700">${d.text}</td></tr>`);
+      }
+    }
+    els.detailBody.innerHTML = rows.join('');
+  }
+  // FX
+  triggerFX(passed);
 }
 
 // If name exists and not completed, prefill
 const storedName = localStorage.getItem(LS.playerName) || '';
-if (storedName) { els.playerName.value = storedName; }
+if (storedName) {
+  els.playerName.value = storedName;
+  try { els.playerName.readOnly = true; els.playerName.disabled = true; } catch {}
+}
 
 import('../scripts/supabase-client.js').then(m => m.getSupabase && (window.__getSupa = m.getSupabase)).catch(()=>{});
 
@@ -246,9 +297,25 @@ async function submitScore(name, score) {
     if (!window.__getSupa) return;
     const supa = await window.__getSupa();
     if (!supa) return;
-    // Ensure table has columns: name (text), score (int), device_key (text), created_at (timestamptz default now())
-    const { error } = await supa.from('leaderboard').upsert({ name, score, device_key: deviceKey }, { onConflict: 'device_key' });
-    if (error) console.warn('submitScore error', error);
+    // 相同玩家名稱覆蓋舊分數，避免重複名稱
+    const { data: existing, error: selErr } = await supa
+      .from('leaderboard')
+      .select('name')
+      .eq('name', name)
+      .maybeSingle();
+    if (selErr) {
+      // 查詢失敗時退回插入嘗試
+      const { error: insErr } = await supa.from('leaderboard').insert({ name, score, device_key: deviceKey });
+      if (insErr) console.warn('submitScore insert error', insErr);
+      return;
+    }
+    if (existing) {
+      const { error: updErr } = await supa.from('leaderboard').update({ score }).eq('name', name);
+      if (updErr) console.warn('submitScore update error', updErr);
+    } else {
+      const { error: insErr } = await supa.from('leaderboard').insert({ name, score, device_key: deviceKey });
+      if (insErr) console.warn('submitScore insert error', insErr);
+    }
   } catch (e) { console.warn('submitScore ex', e); }
 }
 
@@ -274,4 +341,79 @@ async function checkGlobalReset() {
 
 // Boot
 initSavedState();
+
+// Replay support
+if (els.playAgainBtn) {
+  els.playAgainBtn.addEventListener('click', () => {
+    // keep name; reset quiz and start
+    const name = localStorage.getItem(LS.playerName) || '';
+    els.resultCard.style.display = 'none';
+    startQuiz(name);
+  });
+}
+
+// Celebration / Fail effects
+function triggerFX(passed){
+  if (passed) startConfetti(); else startFailFX();
+}
+
+function startConfetti(){
+  try{
+    const canvas = els.fxCanvas; if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio||1, 2);
+    const resize = () => { canvas.width = innerWidth*dpr; canvas.height = innerHeight*dpr; canvas.style.width = innerWidth+'px'; canvas.style.height = innerHeight+'px'; };
+    resize();
+    const colors = ['#ff4fa3','#ffc93c','#7cd4ff','#a3e635','#f472b6'];
+    const N = 140;
+    const parts = Array.from({length:N},()=>({
+      x: Math.random()*canvas.width,
+      y: -Math.random()*canvas.height*0.5,
+      r: 4 + Math.random()*6,
+      vx: -1 + Math.random()*2,
+      vy: 2 + Math.random()*3,
+      rot: Math.random()*Math.PI*2,
+      vr: (-0.1+Math.random()*0.2),
+      color: colors[(Math.random()*colors.length)|0]
+    }));
+    let running = true; const t0 = performance.now();
+    const loop = () => {
+      if (!running) return;
+      const t = performance.now()-t0; if (t>4000) running=false;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for (const p of parts){
+        p.vy += 0.02*dpr; p.x += p.vx*dpr; p.y += p.vy*dpr; p.rot += p.vr;
+        if (p.y>canvas.height+20) { p.y = -10; p.vy=2+Math.random()*3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(-p.r,0); ctx.lineTo(0,-p.r); ctx.lineTo(p.r,0); ctx.lineTo(0,p.r); ctx.closePath(); ctx.fill(); ctx.restore();
+      }
+      if (running) requestAnimationFrame(loop);
+      else setTimeout(()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); }, 200);
+    };
+    requestAnimationFrame(loop);
+  }catch{}
+}
+
+function startFailFX(){
+  try{
+    if (els.resultCard) els.resultCard.classList.add('shake');
+    const host = els.fxFail; if (!host) return;
+    host.style.display = '';
+    host.innerHTML = '';
+    const N = 16;
+    for (let i=0;i<N;i++){
+      const span = document.createElement('span');
+      span.textContent = Math.random()<0.5 ? '💔' : '😭';
+      const left = Math.round(Math.random()*100);
+      const duration = (3+Math.random()*2).toFixed(2);
+      span.style.cssText = `position:absolute;left:${left}vw;top:-10vh;font-size:${24+Math.random()*24}px;animation:fall${i} ${duration}s ease-in forwards`;
+      host.appendChild(span);
+      const key = document.createElement('style');
+      key.textContent = `@keyframes fall${i}{to{transform:translateY(120vh) rotate(${(Math.random()*60-30).toFixed(1)}deg);opacity:0.2}}`;
+      document.head.appendChild(key);
+      setTimeout(()=>{ key.remove(); }, duration*1000+500);
+    }
+    setTimeout(()=>{ host.style.display='none'; if (els.resultCard) els.resultCard.classList.remove('shake'); }, 3500);
+  }catch{}
+}
 

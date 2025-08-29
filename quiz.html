@@ -5,40 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>大格局！大突破！大夢想！</title>
     <style>
-      :root { --bg:#0f172a; --muted:#94a3b8; --text:#e5e7eb; --good:#22c55e; --bad:#ef4444; }
+      /* Cute theme */
+      :root { --bg1:#fff7f9; --bg2:#f2fbff; --bg3:#f9fff5; --card:#ffffff; --border:#ffdce8; --muted:#9aa3ad; --text:#4b5563; --good:#22c55e; --bad:#ef4444; --primary:#ff7ab6; --accent:#7cd4ff; }
       *{box-sizing:border-box}
-      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans TC,PingFang TC,Microsoft JhengHei,sans-serif;background:linear-gradient(180deg,rgba(0,0,0,0.5),rgba(0,0,0,0.75)),url('./image/background.jpg') center/cover no-repeat fixed;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
-      .container{width:100%;max-width:720px;display:grid;gap:16px}
-      .card{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:16px;backdrop-filter:blur(4px)}
-      .title{font-weight:800;text-align:center;font-size:clamp(26px,6.5vw,36px);letter-spacing:.02em;margin:6px 0}
-      .subtitle{text-align:center;font-size:clamp(18px,4.5vw,24px)}
+      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans TC,PingFang TC,Microsoft JhengHei,sans-serif;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(1200px 600px at 20% -10%, var(--bg1), transparent 60%),radial-gradient(1200px 600px at 80% -10%, var(--bg2), transparent 60%),radial-gradient(800px 400px at 50% 110%, var(--bg3), transparent 60%),linear-gradient(180deg, #fff, #fef6ff)}
+      .container{width:100%;max-width:820px;display:grid;gap:16px}
+      .card{background:var(--card);border:2px solid var(--border);border-radius:20px;padding:16px;box-shadow:0 6px 20px rgba(255,122,182,.15)}
+      .title{font-weight:900;text-align:center;font-size:clamp(28px,6.5vw,40px);letter-spacing:.02em;margin:6px 0;color:#ff4fa3}
+      .subtitle{text-align:center;font-size:clamp(18px,4.5vw,24px);color:#7b8a97}
       .question{font-size:clamp(18px,4.5vw,24px);line-height:1.6;margin:8px 0 12px}
       .options{display:grid;gap:12px}
-      .opt{display:block;width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.06);color:var(--text);font-size:18px;cursor:pointer}
-      .opt:hover{background:rgba(255,255,255,0.12)}
-      .meter-wrap{height:18px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,0.18)}
+      .opt{display:block;width:100%;text-align:left;padding:12px 14px;border-radius:14px;border:2px solid #ffe3ef;background:#fff0f7;color:var(--text);font-size:18px;cursor:pointer;box-shadow:0 3px 10px rgba(255,122,182,.12)}
+      .opt:hover{background:#ffeafb}
+      .meter-wrap{height:16px;background:#f1f5f9;border-radius:999px;overflow:hidden;border:2px solid #eaeef2}
       .meter{height:100%;width:100%}
       .hint{color:var(--muted);font-size:14px;text-align:center}
-      .corner-logo{position:fixed;right:12px;bottom:12px;width:64px;height:auto;opacity:.95}
-  .intro{position:fixed;inset:0;background:url('./image/background.jpg') center/cover no-repeat fixed, rgba(0,0,0,0.8);display:grid;place-items:center;z-index:40;pointer-events:none}
+      .corner-logo{position:fixed;right:12px;bottom:12px;width:64px;height:auto;opacity:.9}
+      .intro{position:fixed;inset:0;background:linear-gradient(180deg,rgba(255,250,253,.9),rgba(248,252,255,.9));display:grid;place-items:center;z-index:40;pointer-events:none}
       .intro-inner{display:grid;gap:28px;justify-items:center}
-      .intro .brand img{width:min(86vw,720px);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,0.6));opacity:0;transform:translateY(-8px);animation:fadeInUp 1.4s ease both .2s}
-      .intro .logo-bottom{width:min(56vw,480px);opacity:0;transform:translateY(8px);animation:fadeInDown 1.4s ease both .6s}
+      .intro .brand img{width:min(86vw,720px);height:auto;filter:drop-shadow(0 6px 24px rgba(255,122,182,.3));opacity:0;transform:translateY(-8px);animation:fadeInUp 1.0s ease both .2s}
+      .intro .logo-bottom{width:min(56vw,480px);opacity:0;transform:translateY(8px);animation:fadeInDown 1.0s ease both .4s}
       @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
       @keyframes fadeInDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
       .name-wrap{display:grid;gap:12px}
-      .name-wrap input{padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:var(--text);font-size:18px}
-      .btn{padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.12);color:var(--text);font-size:18px;cursor:pointer}
+      .name-wrap input{padding:12px 14px;border-radius:12px;border:2px solid #eaecef;background:#fff;color:var(--text);font-size:18px}
+      .btn{padding:12px 16px;border-radius:12px;border:2px solid #ffd6ea;background:#ffe7f3;color:#ff4fa3;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 3px 10px rgba(255,122,182,.12)}
       .btn[disabled]{opacity:.5;cursor:not-allowed}
       .center{text-align:center}
+      .rules{background:#fff7fb;border:2px dashed #ffd6ea;border-radius:14px;padding:10px}
+      .rules .rule-title{font-weight:800;color:#ff4fa3;margin-bottom:6px}
+      .rules ul{margin:0;padding-left:18px}
+      .rules li{margin:4px 0;color:#6b7280}
+      .badge{display:inline-block;margin:.25em 0;padding:6px 10px;border-radius:999px;font-weight:800;color:#fff;background:#22c55e}
+      .badge.bad{background:#ef4444}
+      .details{margin-top:12px;max-height:38vh;overflow:auto;border:2px solid #ffe3ef;border-radius:12px}
+      .details table{width:100%;border-collapse:collapse;font-size:14px}
+      .details th,.details td{padding:6px 8px;border-bottom:1px solid #f7d7e6;text-align:left}
+      .fx-canvas{position:fixed;inset:0;pointer-events:none;z-index:60}
+      .fx-fail{position:fixed;inset:0;pointer-events:none;z-index:55;display:none}
+      .shake{animation:shake .6s ease both}
+      @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
     </style>
     <script src="./scripts/supabase-config.js"></script>
   </head>
   <body>
-    <div id="intro" class="intro">
+  <div id="intro" class="intro">
       <div class="intro-inner">
-        <div class="brand"><img src="./image/BIG大特會-white.png" alt="BIG大特會" /></div>
-        <img class="logo-bottom" src="./image/topchurchlogo.png" alt="Top Church" />
+    <div class="brand"><img src="./image/BIG大特會-white.png" alt="BIG大特會" /></div>
+    <img class="logo-bottom" src="./image/topchurchlogo.png" alt="Top Church" />
       </div>
     </div>
 
@@ -49,6 +63,15 @@
           <input id="playerName" type="text" inputmode="text" placeholder="請輸入中文全名" maxlength="12" />
           <button id="startBtn" class="btn" type="button">開始作答</button>
           <div class="hint">請輸入中文全名</div>
+          <div class="rules">
+            <div class="rule-title">計分規則</div>
+            <ul>
+              <li>每題答對 +100 分</li>
+              <li>速度獎勵 0–100 分（10 秒內越快越高）</li>
+              <li>每關全對額外 +500 分（共三關）</li>
+              <li>滿分 7500 分，過關線 5500 分</li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -63,17 +86,30 @@
           <button class="opt" id="optB" data-k="B"></button>
           <button class="opt" id="optC" data-k="C"></button>
         </div>
-        <div class="hint">倒數 5 秒內越快作答，加分越高</div>
+        <div class="hint">倒數 10 秒內越快作答，加分越高</div>
       </div>
 
       <div class="card center" id="resultCard" style="display:none">
-        <div class="subtitle">完成！</div>
+        <div id="resultTitle" class="subtitle">完成！</div>
         <div style="font-size:40px;margin:.25em 0"><span id="score"></span> 分</div>
         <div id="resultName" style="font-size:20px;color:var(--muted)"></div>
+        <div id="passBadge" class="badge" style="display:none">恭喜過關 🎉</div>
+        <div id="failBadge" class="badge bad" style="display:none">未達標，加油 💪</div>
+        <div class="details">
+          <table>
+            <thead><tr><th>#</th><th>狀態</th><th>加分</th><th>速度</th></tr></thead>
+            <tbody id="detailBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px">
+          <button id="playAgainBtn" class="btn" type="button">再玩一次</button>
+        </div>
       </div>
     </div>
 
     <img class="corner-logo" src="./image/topchurchlogo.png" alt="Top Church" />
+    <canvas id="fxCanvas" class="fx-canvas"></canvas>
+    <div id="fxFail" class="fx-fail"></div>
 
     <script type="module" src="./scripts/quiz.js"></script>
     <script>
