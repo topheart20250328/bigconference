@@ -54,6 +54,20 @@
       .details{margin-top:12px;max-height:38vh;overflow:auto;border:2px solid #eaeef2;border-radius:12px}
       .details table{width:100%;border-collapse:collapse;font-size:14px}
       .details th,.details td{padding:6px 8px;border-bottom:1px solid #eef2f7;text-align:left}
+  /* Leaderboard styles */
+  .lb-card{margin-top:12px;background:#fff;border:3px solid var(--border);border-radius:18px;padding:12px;box-shadow:0 8px 18px rgba(0,0,0,.06)}
+  .lb-title{display:flex;align-items:center;gap:8px;font-weight:900;color:#334155;margin:0 0 8px}
+  .lb-refresh{margin-left:auto;background:#eef6ff;border:2px solid #bfdbfe;border-radius:999px;padding:4px 8px;font-size:12px;color:#334155;cursor:pointer}
+  .lb-wrap{max-height:38vh;overflow:auto;border:2px solid #eaeef2;border-radius:12px}
+  .lb-table{width:100%;border-collapse:collapse;font-size:14px}
+  .lb-table th,.lb-table td{padding:6px 8px;border-bottom:1px solid #eef2f7;text-align:left}
+  .lb-table th:nth-child(1),.lb-table td:nth-child(1){width:56px}
+  .lb-rank{font-weight:900}
+  .lb-top1{background:linear-gradient(90deg,#fff7e6,#fff);}
+  .lb-top2{background:linear-gradient(90deg,#f0f7ff,#fff);}
+  .lb-top3{background:linear-gradient(90deg,#fff0f5,#fff);}
+  .lb-top10{box-shadow:inset 4px 0 0 #fde68a22}
+  .lb-badge{display:inline-block;margin-right:6px}
   /* Stage themes */
   :root{ --th1:#60a5fa; --th2:#a78bfa; --outline:#eaeef2 }
   .theme-1{ --th1:#38bdf8; --th2:#22c55e; --outline:#bfefff }
@@ -99,6 +113,15 @@
               <li class="r4">過關線 5500 分（滿分 7500）</li>
             </ul>
           </div>
+          <div class="lb-card">
+            <h3 class="lb-title">排行榜（前 100 名） <button id="lbRefreshA" class="lb-refresh" type="button">重新整理</button></h3>
+            <div class="lb-wrap">
+              <table class="lb-table">
+                <thead><tr><th>#</th><th>玩家</th><th style="text-align:right">分數</th></tr></thead>
+                <tbody id="lbBodyStart"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -131,6 +154,15 @@
         <div style="margin-top:10px">
           <button id="playAgainBtn" class="btn" type="button">再玩一次</button>
           <button id="goHomeBtn" class="btn" type="button" style="margin-left:8px">返回首頁</button>
+        </div>
+        <div class="lb-card" style="margin-top:12px">
+          <h3 class="lb-title">排行榜（前 100 名） <button id="lbRefreshB" class="lb-refresh" type="button">重新整理</button></h3>
+          <div class="lb-wrap">
+            <table class="lb-table">
+              <thead><tr><th>#</th><th>玩家</th><th style="text-align:right">分數</th></tr></thead>
+              <tbody id="lbBodyResult"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

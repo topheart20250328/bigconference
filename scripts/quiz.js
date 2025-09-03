@@ -98,6 +98,11 @@ const els = {
   goHomeBtn: document.getElementById('goHomeBtn'),
   fxCanvas: document.getElementById('fxCanvas'),
   fxFail: document.getElementById('fxFail'),
+  // leaderboard containers
+  lbBodyStart: document.getElementById('lbBodyStart'),
+  lbBodyResult: document.getElementById('lbBodyResult'),
+  lbRefreshA: document.getElementById('lbRefreshA'),
+  lbRefreshB: document.getElementById('lbRefreshB'),
 };
 
 // Validation: Chinese-only (CJK)
@@ -305,6 +310,80 @@ if (storedName) {
 
 import('../scripts/supabase-client.js').then(m => m.getSupabase && (window.__getSupa = m.getSupabase)).catch(()=>{});
 
+// Leaderboard: load top 100 from supabase or fallback JSON
+let __lb_cache = [];
+let __lb_loading = false;
+async function loadLeaderboardTop100() {
+  if (__lb_loading) return __lb_cache;
+  __lb_loading = true;
+  try {
+    const getSupa = window.__getSupa ? window.__getSupa : null;
+    if (getSupa) {
+      const supa = await getSupa();
+      if (supa) {
+        const { data, error } = await supa
+          .from('leaderboard')
+          .select('name,score')
+          .order('score', { ascending: false })
+          .limit(100);
+        if (!error && Array.isArray(data)) {
+          __lb_cache = (data || []).map(x => ({ name: x.name || '', score: Number(x.score) || 0 }));
+          return __lb_cache;
+        }
+      }
+    }
+    // fallback to static
+    const res = await fetch('./leaderboard.json', { cache: 'no-store' }).catch(() => null);
+    if (res && res.ok) {
+      const arr = await res.json();
+      __lb_cache = Array.isArray(arr) ? arr.slice(0,100).map(x => ({ name: x.name || '', score: Number(x.score) || 0 })) : [];
+      return __lb_cache;
+    }
+  } catch (e) { /* noop */ }
+  finally { __lb_loading = false; }
+  return __lb_cache;
+}
+
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+function rankBadge(rank) {
+  // Return emoji/icon for top ranks
+  const badges = {
+    1: '👑', 2: '🥈', 3: '🥉', 4: '⭐', 5: '🌟', 6: '🎯', 7: '🔥', 8: '⚡', 9: '💎', 10: '🏅'
+  };
+  return badges[rank] || '';
+}
+
+function rowClassForRank(rank) {
+  if (rank === 1) return 'lb-top1';
+  if (rank === 2) return 'lb-top2';
+  if (rank === 3) return 'lb-top3';
+  if (rank <= 10) return 'lb-top10';
+  return '';
+}
+
+function renderLeaderboardRows(tbodyEl, list) {
+  if (!tbodyEl) return;
+  const rows = [];
+  list.slice(0, 100).forEach((it, i) => {
+    const rank = i + 1;
+    const klass = rowClassForRank(rank);
+    const badge = rankBadge(rank);
+    rows.push(`<tr class="${klass}"><td class="lb-rank">${rank}</td><td>${badge?`<span class='lb-badge'>${badge}</span>`:''}${escapeHtml(it.name)}</td><td style="text-align:right">${it.score}</td></tr>`);
+  });
+  tbodyEl.innerHTML = rows.join('') || `<tr><td colspan="3" style="color:#94a3b8">暫無資料</td></tr>`;
+}
+
+async function refreshLeaderboards() {
+  const data = await loadLeaderboardTop100();
+  renderLeaderboardRows(els.lbBodyStart, data);
+  renderLeaderboardRows(els.lbBodyResult, data);
+}
+
+// Wire refresh buttons
+if (els.lbRefreshA) els.lbRefreshA.addEventListener('click', () => { __lb_loading = false; refreshLeaderboards(); });
+if (els.lbRefreshB) els.lbRefreshB.addEventListener('click', () => { __lb_loading = false; refreshLeaderboards(); });
+
 async function submitScore(name, score) {
   try {
     if (!window.__getSupa) return;
@@ -329,6 +408,8 @@ async function submitScore(name, score) {
       const { error: insErr } = await supa.from('leaderboard').insert({ name, score, device_key: deviceKey });
       if (insErr) console.warn('submitScore insert error', insErr);
     }
+  // refresh cache after successful write
+  __lb_loading = false; await refreshLeaderboards();
   } catch (e) { console.warn('submitScore ex', e); }
 }
 
@@ -354,6 +435,7 @@ async function checkGlobalReset() {
 
 // Boot
 initSavedState();
+refreshLeaderboards();
 
 // Replay support
 if (els.playAgainBtn) {
