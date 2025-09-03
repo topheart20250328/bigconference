@@ -308,7 +308,22 @@ if (storedName) {
   try { els.playerName.readOnly = true; els.playerName.disabled = true; } catch {}
 }
 
-import('../scripts/supabase-client.js').then(m => m.getSupabase && (window.__getSupa = m.getSupabase)).catch(()=>{});
+// Defer Supabase import until after first paint to not block intro
+function defer(fn){
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => fn(), { timeout: 1000 });
+  } else {
+    setTimeout(fn, 0);
+  }
+}
+requestAnimationFrame(() => defer(() => {
+  import('../scripts/supabase-client.js')
+    .then(m => m.getSupabase && (window.__getSupa = m.getSupabase))
+    .then(()=>{ refreshLeaderboards(); })
+  .catch(()=>{});
+}));
+// Also schedule a fallback refresh (using JSON if no Supabase) to ensure table fills even if import fails
+requestAnimationFrame(() => defer(() => { refreshLeaderboards(); }));
 
 // Leaderboard: load top 100 from supabase or fallback JSON
 let __lb_cache = [];
@@ -433,9 +448,8 @@ async function checkGlobalReset() {
   } catch { /* noop */ }
 }
 
-// Boot
+// Boot (init state immediately but keep heavy IO deferred)
 initSavedState();
-refreshLeaderboards();
 
 // Replay support
 if (els.playAgainBtn) {

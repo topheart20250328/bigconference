@@ -264,7 +264,16 @@ async function main() {
   }
 }
 
-main();
+// Start after first paint to ensure the intro can animate smoothly
+function scheduleMain(){
+  const kick = () => requestAnimationFrame(() => setTimeout(main, 0));
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', kick, { once:true });
+  } else {
+    kick();
+  }
+}
+scheduleMain();
 
 // Simple handlers for bind code UI
 window.__rs_setBindCode = function() {

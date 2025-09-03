@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>大格局！大突破！大夢想！</title>
+  <!-- Preload critical intro images to ensure the intro shows instantly -->
+  <link rel="preload" as="image" href="./image/background.jpg" />
+  <link rel="preload" as="image" href="./image/BIG大特會-white.png" />
+  <link rel="preload" as="image" href="./image/topchurchlogo.png" />
+  <!-- Optional preconnects for faster module/CDN fetches -->
+  <link rel="preconnect" href="https://esm.sh" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <style>
       /* Candy cartoon theme */
       :root { --bg1:#fff7f9; --bg2:#f2fbff; --bg3:#f5fff7; --card:#ffffff; --border:#e9eef5; --muted:#6b7280; --text:#334155; --good:#22c55e; --bad:#ef4444; --primary:#7cd4ff; --accent:#ff9bd4; --yellow:#fde047; --green:#86efac; --orange:#fbbf24; }
@@ -92,8 +99,8 @@
   <body>
   <div id="intro" class="intro">
       <div class="intro-inner">
-    <div class="brand"><img src="./image/BIG大特會-white.png" alt="BIG大特會" /></div>
-    <img class="logo-bottom" src="./image/topchurchlogo.png" alt="Top Church" />
+    <div class="brand"><img src="./image/BIG大特會-white.png" alt="BIG大特會" decoding="async" loading="eager" fetchpriority="high" width="720" /></div>
+    <img class="logo-bottom" src="./image/topchurchlogo.png" alt="Top Church" decoding="async" loading="eager" fetchpriority="high" width="480" />
       </div>
     </div>
 
@@ -173,20 +180,20 @@
 
     <script type="module" src="./scripts/quiz.js"></script>
     <script>
-      // 片頭延長到5秒，淡出 1.5 秒；允許點擊略過
+      // 片頭延長到5秒，淡出 1.5 秒；允許點擊/按鍵略過；避免與首屏繪製競爭
       function hideIntro(){
         const el = document.getElementById('intro');
-        if (!el) return;
+        if (!el || el.__hidden) return;
+        el.__hidden = true;
         el.style.transition = 'opacity 1.5s ease';
         el.style.opacity = '0';
         setTimeout(()=>{ el.style.display = 'none'; }, 1600);
       }
-      setTimeout(hideIntro, 5000);
-      // 點擊任意處略過（intro 有 pointer-events:none，因此綁在 document）
-      document.addEventListener('click', ()=>{
-        const el = document.getElementById('intro');
-        if (el && el.style.display !== 'none') hideIntro();
-      }, { once:true });
+      // 等待第一幀繪製後再開始計時，避免主執行緒阻塞導致動畫未播放
+      requestAnimationFrame(()=>{ setTimeout(hideIntro, 5000); });
+      // 點擊或按鍵立即略過（intro 有 pointer-events:none，因此綁在 document）
+      document.addEventListener('click', hideIntro, { once:true, capture:true });
+      document.addEventListener('keydown', hideIntro, { once:true, capture:true });
     </script>
   </body>
 </html>

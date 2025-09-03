@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>BIG大特會 | 今日一句</title>
+  <!-- Preload critical intro images to ensure the intro shows instantly -->
+  <link rel="preload" as="image" href="./image/background.jpg" />
+  <link rel="preload" as="image" href="./image/BIG大特會-white.png" />
+  <link rel="preload" as="image" href="./image/topchurchlogo.png" />
+  <!-- Optional preconnects for faster module/CDN fetches -->
+  <link rel="preconnect" href="https://esm.sh" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <style>
       :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --accent2:#60a5fa; }
       *{box-sizing:border-box}
@@ -33,10 +40,10 @@
     </style>
   </head>
   <body>
-    <div id="intro" class="intro">
+  <div id="intro" class="intro">
       <div class="intro-inner">
-        <div class="brand"><img src="./image/BIG大特會-white.png" alt="BIG大特會" /></div>
-        <img class="logo-bottom" src="./image/topchurchlogo.png" alt="Top Church" />
+    <div class="brand"><img src="./image/BIG大特會-white.png" alt="BIG大特會" decoding="async" loading="eager" fetchpriority="high" width="720" /></div>
+    <img class="logo-bottom" src="./image/topchurchlogo.png" alt="Top Church" decoding="async" loading="eager" fetchpriority="high" width="480" />
       </div>
     </div>
     <div class="container">
@@ -59,16 +66,22 @@
       </section>
     </div>
     <img class="corner-logo" src="./image/topchurchlogo.png" alt="Top Church" />
-    <script src="./scripts/app.js" type="module"></script>
+  <script src="./scripts/app.js" type="module"></script>
     <script>
-      // 片頭延長到5秒，淡出 1.5 秒
-      setTimeout(()=>{
+      // 片頭延長到5秒，淡出 1.5 秒；點擊任意處可立即略過
+      function hideIntro(){
         const el = document.getElementById('intro');
-        if (!el) return;
+        if (!el || el.__hidden) return;
+        el.__hidden = true;
         el.style.transition = 'opacity 1.5s ease';
         el.style.opacity = '0';
         setTimeout(()=>{ el.style.display = 'none'; }, 1600);
-      }, 5000);
+      }
+      // 確保先繪製首屏再啟動沉重初始化
+      requestAnimationFrame(()=>{ setTimeout(()=>{ hideIntro(); }, 5000); });
+      // 使用者互動立即跳過
+      addEventListener('click', hideIntro, { once:true, capture:true });
+      addEventListener('keydown', hideIntro, { once:true, capture:true });
     </script>
   </body>
   </html>
