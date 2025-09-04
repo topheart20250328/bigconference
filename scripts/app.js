@@ -292,11 +292,11 @@ function fitCard(card){
   if (!textEl) return;
   // Start from current computed size, shrink or grow toward bounds to fill space
   const cs = getComputedStyle(textEl);
-  let base = parseFloat(cs.fontSize) || 22;
-  let refBase = parseFloat(getComputedStyle(refEl||textEl).fontSize) || 14;
-  const minBase = 18, maxBase = 28;
-  const minRef = 12, maxRef = 16;
-  let tries = 20;
+  let base = parseFloat(cs.fontSize) || 21;
+  let refBase = parseFloat(getComputedStyle(refEl||textEl).fontSize) || 13;
+  const minBase = 16, maxBase = 24; // tighter bounds for compactness
+  const minRef = 11, maxRef = 15;
+  let tries = 24;
   const total = () => card.clientHeight;
   const used = () => (textEl.scrollHeight + (refEl ? refEl.scrollHeight : 0));
   // First, shrink if overflowing
@@ -307,8 +307,8 @@ function fitCard(card){
     if (refEl) refEl.style.fontSize = refBase + 'px';
   }
   // Then, gently grow if there is ample free space
-  let growTries = 8;
-  while (growTries-- > 0 && used() < total() * 0.90) {
+  let growTries = 10;
+  while (growTries-- > 0 && used() < total() * 0.88) {
     const nextBase = clamp(base + 1, minBase, maxBase);
     const nextRef = clamp(refBase + 1, minRef, maxRef);
     if (nextBase === base && nextRef === refBase) break;
