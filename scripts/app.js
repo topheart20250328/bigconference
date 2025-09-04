@@ -127,7 +127,11 @@ async function fetchJSON(path) {
 }
 
 async function fetchText(path) {
-  const url = DATA_VERSION ? `${path}?v=${encodeURIComponent(DATA_VERSION)}` : path;
+  // Build absolute URL and add version param robustly
+  const u = new URL(path, location.href);
+  if (DATA_VERSION) u.searchParams.set('v', DATA_VERSION);
+  const url = u.toString();
+  try { window.__RS_LAST_FETCH_URL = url; } catch {}
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.text();
@@ -224,6 +228,7 @@ async function main() {
   const loading = document.getElementById('loading');
   const error = document.getElementById('error');
   const cards = document.getElementById('cards');
+  const debug = /(?:[?&])debug=1(?:&|$)/.test(location.search);
 
   try {
     // Check remote reset flag (may clear local device/bind so do this before obtaining key)
@@ -236,7 +241,7 @@ async function main() {
     if (keyEl) keyEl.textContent = deviceKey;
 
     // fetch curated pairs from merged text and parse
-    const txt = await fetchText('./merged_verses_quotes.txt');
+  const txt = await fetchText('merged_verses_quotes.txt');
     const pairs = parseMergedPairs(txt);
     if (!pairs.length) throw new Error('No curated pairs parsed');
 
@@ -254,7 +259,13 @@ async function main() {
   } catch (e) {
     console.error('Init failed:', e);
     loading.classList.add('hidden');
-    error.classList.remove('hidden');
+    if (error) {
+      if (debug) {
+        const extra = (window.__RS_LAST_FETCH_URL ? ('\nURL: ' + window.__RS_LAST_FETCH_URL) : '');
+        error.textContent = '載入失敗：' + (e && e.message ? e.message : String(e)) + extra;
+      }
+      error.classList.remove('hidden');
+    }
   }
 }
 

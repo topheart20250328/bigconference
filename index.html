@@ -67,7 +67,11 @@
       const base = location.origin + location.pathname.replace(/index\.html?$/, '');
       const sp = new URLSearchParams(location.search);
       const ver = sp.get('v') || (()=>{ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}`; })();
-      const targets = { verse: `${base}view.html?v=${encodeURIComponent(ver)}`, quiz: `${base}quiz.html?v=${encodeURIComponent(ver)}` };
+      const dbg = sp.get('debug') ? '&debug=1' : '';
+      const targets = {
+        verse: `${base}view.html?v=${encodeURIComponent(ver)}${dbg}`,
+        quiz: `${base}quiz.html?v=${encodeURIComponent(ver)}${dbg}`
+      };
 
       const box = document.getElementById('qrcode');
       const linkWrap = document.getElementById('fallbackLink');
