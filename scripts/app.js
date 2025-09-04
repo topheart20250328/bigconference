@@ -290,20 +290,29 @@ function fitCard(card){
   const textEl = card.querySelector('.content');
   const refEl = card.querySelector('.ref');
   if (!textEl) return;
-  // Start from current computed size and shrink until fits, but keep reasonable bounds
+  // Start from current computed size, shrink or grow toward bounds to fill space
   const cs = getComputedStyle(textEl);
   let base = parseFloat(cs.fontSize) || 20;
   let refBase = parseFloat(getComputedStyle(refEl||textEl).fontSize) || 14;
-  let tries = 14;
-  const pad = 0; // padding already counted inside card height
-  while (tries-- > 0) {
-    // measure
-    const total = card.clientHeight - pad;
-    const textH = textEl.scrollHeight;
-    const refH = refEl ? refEl.scrollHeight : 0;
-    if (textH + refH <= total) break;
-    base = clamp(base - 1, 14, 28);
-    refBase = clamp(refBase - 1, 12, 18);
+  const minBase = 16, maxBase = 26;
+  const minRef = 12, maxRef = 16;
+  let tries = 20;
+  const total = () => card.clientHeight;
+  const used = () => (textEl.scrollHeight + (refEl ? refEl.scrollHeight : 0));
+  // First, shrink if overflowing
+  while (tries-- > 0 && used() > total()) {
+    base = clamp(base - 1, minBase, maxBase);
+    refBase = clamp(refBase - 1, minRef, maxRef);
+    textEl.style.fontSize = base + 'px';
+    if (refEl) refEl.style.fontSize = refBase + 'px';
+  }
+  // Then, gently grow if there is ample free space
+  let growTries = 8;
+  while (growTries-- > 0 && used() < total() * 0.90) {
+    const nextBase = clamp(base + 1, minBase, maxBase);
+    const nextRef = clamp(refBase + 1, minRef, maxRef);
+    if (nextBase === base && nextRef === refBase) break;
+    base = nextBase; refBase = nextRef;
     textEl.style.fontSize = base + 'px';
     if (refEl) refEl.style.fontSize = refBase + 'px';
   }

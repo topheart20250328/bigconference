@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>今日一句</title>
   <!-- Preload critical intro images to ensure the intro shows instantly -->
+  <link rel="preload" as="image" href="./image/background.jpg" />
   <link rel="preload" as="image" href="./image/BIG大特會-white.png" />
   <link rel="preload" as="image" href="./image/topchurchlogo.png" />
   <!-- Optional preconnects for faster module/CDN fetches -->
@@ -37,24 +38,24 @@
       }
 
       .container{width:100%;max-width:920px;margin:0 auto;padding:clamp(10px,3vw,18px);height:100%;display:grid;grid-template-rows:auto 1fr;gap:12px}
-      .cards{display:grid;gap:12px;height:100%;grid-template-rows:1fr 1fr}
-      .card{background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.04));border:1px solid rgba(255,255,255,0.10);border-radius:14px;padding:clamp(12px,3.2vw,18px);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;flex-direction:column;min-height:0}
-      .content{font-size:clamp(18px,4vw,22px);line-height:1.6;overflow:auto;-webkit-overflow-scrolling:touch}
+  .cards{display:grid;gap:10px;height:100%;grid-template-rows:1fr 1fr}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.04));border:1px solid rgba(255,255,255,0.10);border-radius:14px;padding:clamp(12px,3.2vw,18px);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;flex-direction:column;min-height:0}
+  .content{font-size:clamp(20px,5vw,24px);line-height:1.6;overflow:auto;-webkit-overflow-scrolling:touch}
       .ref{margin-top:8px;font-size:clamp(12px,3.2vw,14px);color:var(--muted)}
       .card.verse{border-left:3px solid var(--accent)}
       .card.quote{border-left:3px solid var(--accent2)}
       .note{color:var(--muted);font-size:12px;text-align:center}
       .hidden{display:none}
 
-      /* Intro overlay */
-      .intro { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: grid; place-items: center; z-index: 40; }
+  /* Intro overlay */
+  .intro { position: fixed; inset: 0; background: url('./image/background.jpg') center/cover no-repeat fixed, rgba(0,0,0,0.8); display: grid; place-items: center; z-index: 40; }
       .intro-inner { display:grid; gap: 28px; justify-items:center; }
       .intro .brand img { width: min(86vw, 720px); height:auto; filter: drop-shadow(0 6px 24px rgba(0,0,0,0.6)); opacity: 0; transform: translateY(-8px); animation: fadeInUp 1.4s ease both .2s; }
       .intro .logo-bottom { width: min(56vw, 480px); opacity: 0; transform: translateY(8px); animation: fadeInDown 1.4s ease both .6s; }
       @keyframes fadeInUp { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
       @keyframes fadeInDown { from { opacity:0; transform: translateY(-8px);} to { opacity:1; transform: translateY(0);} }
-      .corner-logo { position: fixed; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: 56px; height:auto; opacity:.95; z-index: 10; }
-      .brand-left { position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: min(44vw, 160px); height:auto; opacity:.95; z-index: 10; }
+  .corner-logo { position: fixed; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: 56px; height:auto; opacity:.95; z-index: 10; }
+  .brand-top-left { position: fixed; left: 12px; top: calc(12px + env(safe-area-inset-top)); width: min(44vw, 160px); height:auto; opacity:.95; z-index: 10; pointer-events:none; }
     </style>
   </head>
   <body>
@@ -94,7 +95,7 @@
         </article>
       </section>
     </div>
-    <img class="brand-left" src="./image/BIG大特會-white.png" alt="BIG大特會" />
+  <img class="brand-top-left" src="./image/BIG大特會-white.png" alt="BIG大特會" />
     <img class="corner-logo" src="./image/topchurchlogo.png" alt="Top Church" />
   <script src="./scripts/app.js" type="module"></script>
     <script>
