@@ -176,7 +176,7 @@ function renderQuote(q) {
     return;
   }
   quoteText.textContent = q.text || '';
-  quoteRef.textContent = q.author ? `— ${q.author}` : '';
+  quoteRef.textContent = q.author ? `${q.author}` : '';
 }
 
 function rarityWeight(r) {
