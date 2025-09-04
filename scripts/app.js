@@ -1,16 +1,15 @@
-// Deterministic per-device selection of one verse and one quote
+// Deterministic per-device selection of one curated verse–quote PAIR
 // Contract:
-// - Inputs: external-verses.json (array of {book, chapter, verse, version, rarity}), quotes.json (array of {text, author})
-// - Output: render chosen verse and quote to DOM
+// - Input: merged_verses_quotes.txt (4-line blocks: ref, verse, author, quote) — sole data source
+// - Output: render chosen pair to DOM
 // - Determinism per device: uses stable device key stored in localStorage (generated one-time from userAgent + platform + language + screen metrics)
-// - Fallback: if quotes.json missing, use a small placeholder set
 
 const STATE_KEYS = {
   deviceKey: 'rs_device_key_v2',
   bindCode: 'rs_bind_code_v1', // manual override for cross-browser consistency
 };
 
-// Optional data version from URL (e.g., view.html?v=20250828) to force-refresh JSON after updates
+// Optional data version from URL (e.g., view.html?v=20250828) to force-refresh assets after updates
 const DATA_VERSION = (() => {
   try {
     const p = new URLSearchParams(location.search);
@@ -127,6 +126,30 @@ async function fetchJSON(path) {
   return res.json();
 }
 
+async function fetchText(path) {
+  const url = DATA_VERSION ? `${path}?v=${encodeURIComponent(DATA_VERSION)}` : path;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.text();
+}
+
+function parseMergedPairs(txt) {
+  // Expect blocks of 4 non-empty lines: ref, verse, author, quote; ignore blank lines and header line
+  const rawLines = txt.split(/\r?\n/);
+  const lines = rawLines.map(l => l.trim()).filter(l => l.length > 0);
+  if (lines.length && /^BIG/.test(lines[0])) lines.shift();
+  const out = [];
+  for (let i = 0; i + 3 < lines.length; ) {
+    const ref = lines[i++];
+    const verse = lines[i++];
+    const author = lines[i++];
+    const qline = lines[i++];
+    const quote = qline.replace(/^「/, '').replace(/」$/, '');
+    out.push({ ref, verse, author, quote });
+  }
+  return out;
+}
+
 function renderVerse(v) {
   const verseText = document.getElementById('verseText');
   const verseRef = document.getElementById('verseRef');
@@ -135,10 +158,9 @@ function renderVerse(v) {
     verseRef.textContent = '';
     return;
   }
-  verseText.textContent = v.verse || '';
-  const ref = [v.book, v.chapter].filter(Boolean).join(' ');
-  // 僅顯示書卷與章節，不顯示版本名稱
-  verseRef.textContent = ref;
+  // support old shape { verse, book/chapter } and new shape { text, ref }
+  verseText.textContent = v.text || v.verse || '';
+  verseRef.textContent = v.ref || [v.book, v.chapter].filter(Boolean).join(' ');
 }
 
 function renderQuote(q) {
@@ -204,55 +226,27 @@ async function main() {
   const cards = document.getElementById('cards');
 
   try {
-  // Check remote reset flag (may clear local device/bind so do this before obtaining key)
-  await checkGlobalReset();
-  const deviceKey = getOrCreateDeviceKey();
-  const resetSalt = String(localStorage.getItem(LS_RESET) || '');
+    // Check remote reset flag (may clear local device/bind so do this before obtaining key)
+    await checkGlobalReset();
+    const deviceKey = getOrCreateDeviceKey();
+    const resetSalt = String(localStorage.getItem(LS_RESET) || '');
 
-  // expose current key on UI if present
-  const keyEl = document.getElementById('currentKey');
-  if (keyEl) keyEl.textContent = deviceKey;
+    // expose current key on UI if present
+    const keyEl = document.getElementById('currentKey');
+    if (keyEl) keyEl.textContent = deviceKey;
 
-    // fetch data
-    const [verses, quotesMaybe] = await Promise.all([
-      fetchJSON('./external-verses.json'),
-      fetchJSON('./quotes.json').catch(() => null),
-    ]);
+    // fetch curated pairs from merged text and parse
+    const txt = await fetchText('./merged_verses_quotes.txt');
+    const pairs = parseMergedPairs(txt);
+    if (!pairs.length) throw new Error('No curated pairs parsed');
 
-    // Prepare quotes and filter out anonymous/missing author entries defensively
-    const primaryQuotes = Array.isArray(quotesMaybe) && quotesMaybe.length
-      ? quotesMaybe
-      : [
-          { text: '行動是治療恐懼的良藥。', author: '安娜依絲·寧' },
-          { text: '真正的勇氣不是沒有恐懼，而是戰勝恐懼。', author: '納爾遜·曼德拉' },
-          { text: '把簡單做到極致，就是不簡單。', author: '達芬奇' },
-        ];
-    const quotesFiltered = primaryQuotes.filter(q => {
-      if (!q || !q.author || !q.text) return false;
-      const a = String(q.author).trim();
-      return a && !/(佚名|匿名|unknown|無名)/i.test(a);
-    });
-    // De-duplicate by normalized text+author
-    const seen = new Set();
-    const quotesDedup = [];
-    for (const q of quotesFiltered) {
-      const key = (String(q.text).trim().toLowerCase() + '|' + String(q.author).trim().toLowerCase());
-      if (seen.has(key)) continue;
-      seen.add(key);
-      quotesDedup.push(q);
-    }
-    const quotes = quotesDedup.length ? quotesDedup : primaryQuotes;
-
-    // Deterministic picks using device key
-    const versePool = buildWeightedArray(verses, (v) => rarityWeight(v.rarity));
+    // Deterministic pick using device key (single index into curated list)
     const seedBase = `${deviceKey}|${resetSalt}`;
-    const verseIdx = versePool.length
-      ? versePool[pickDeterministicIndex(versePool.length, seedBase, 'verse')]
-      : 0;
-    const quoteIdx = pickDeterministicIndex(quotes.length, seedBase, 'quote');
+    const pairIdx = pickDeterministicIndex(pairs.length, seedBase, 'pair');
+    const p = pairs[pairIdx];
 
-    renderVerse(verses[verseIdx]);
-    renderQuote(quotes[quoteIdx]);
+    renderVerse({ text: p.verse, ref: p.ref });
+    renderQuote({ text: p.quote, author: p.author });
 
     loading.classList.add('hidden');
     error.classList.add('hidden');
