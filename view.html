@@ -12,7 +12,13 @@
   <link rel="preconnect" href="https://esm.sh" crossorigin />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <style>
-      :root { --card:#0b1220; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --accent2:#60a5fa; --bg-img:url('./FrostedGlass/FrostedGlass_01.jpg'); }
+      :root {
+        --card:#0b1220; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --accent2:#60a5fa; --bg-img:url('./FrostedGlass/FrostedGlass_01.jpg');
+        --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
+        /* Reserve vertical space so logos never overlap cards */
+        --brandTopSpace: 110px;   /* top-left BIG logo reserved height */
+        --brandBottomSpace: 88px; /* bottom-right church logo reserved height */
+      }
       *{box-sizing:border-box}
       html, body { height: 100%; }
       body{
@@ -37,11 +43,15 @@
         z-index: -1;
       }
 
-      .container{width:100%;max-width:920px;margin:0 auto;padding:clamp(10px,3vw,18px);height:100%;display:grid;grid-template-rows:auto 1fr;gap:12px}
+      .container{width:100%;max-width:920px;margin:0 auto;height:100%;display:grid;grid-template-rows:auto 1fr;gap:12px;
+        padding-left:clamp(12px,3vw,16px); padding-right:clamp(12px,3vw,16px);
+        padding-top: calc(12px + var(--safe-top) + var(--brandTopSpace));
+        padding-bottom: calc(12px + var(--safe-bottom) + var(--brandBottomSpace));
+      }
   .cards{display:grid;gap:10px;height:100%;grid-template-rows:1fr 1fr}
   .card{background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.04));border:1px solid rgba(255,255,255,0.10);border-radius:14px;padding:clamp(12px,3.2vw,18px);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;flex-direction:column;min-height:0}
-  .content{font-size:clamp(20px,5vw,24px);line-height:1.6;overflow:auto;-webkit-overflow-scrolling:touch}
-      .ref{margin-top:8px;font-size:clamp(12px,3.2vw,14px);color:var(--muted)}
+  .content{font-size:clamp(20px,5.5vw,26px);line-height:1.65;overflow:auto;-webkit-overflow-scrolling:touch}
+  .ref{margin-top:8px;font-size:clamp(12px,3.2vw,14px);color:var(--muted);letter-spacing:.02em}
       .card.verse{border-left:3px solid var(--accent)}
       .card.quote{border-left:3px solid var(--accent2)}
       .note{color:var(--muted);font-size:12px;text-align:center}
@@ -54,8 +64,8 @@
       .intro .logo-bottom { width: min(56vw, 480px); opacity: 0; transform: translateY(8px); animation: fadeInDown 1.4s ease both .6s; }
       @keyframes fadeInUp { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
       @keyframes fadeInDown { from { opacity:0; transform: translateY(-8px);} to { opacity:1; transform: translateY(0);} }
-  .corner-logo { position: fixed; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: 56px; height:auto; opacity:.95; z-index: 10; }
-  .brand-top-left { position: fixed; left: 12px; top: calc(12px + env(safe-area-inset-top)); width: min(44vw, 160px); height:auto; opacity:.95; z-index: 10; pointer-events:none; }
+  .corner-logo { position: fixed; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: 64px; height:auto; opacity:.95; z-index: 10; pointer-events:none; }
+  .brand-top-left { position: fixed; left: 12px; top: calc(12px + env(safe-area-inset-top)); width: min(52vw, 210px); height:auto; opacity:.98; z-index: 10; pointer-events:none; }
     </style>
   </head>
   <body>

@@ -292,9 +292,9 @@ function fitCard(card){
   if (!textEl) return;
   // Start from current computed size, shrink or grow toward bounds to fill space
   const cs = getComputedStyle(textEl);
-  let base = parseFloat(cs.fontSize) || 20;
+  let base = parseFloat(cs.fontSize) || 22;
   let refBase = parseFloat(getComputedStyle(refEl||textEl).fontSize) || 14;
-  const minBase = 16, maxBase = 26;
+  const minBase = 18, maxBase = 28;
   const minRef = 12, maxRef = 16;
   let tries = 20;
   const total = () => card.clientHeight;
