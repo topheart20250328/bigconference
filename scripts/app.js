@@ -250,12 +250,15 @@ async function main() {
     const pairIdx = pickDeterministicIndex(pairs.length, seedBase, 'pair');
     const p = pairs[pairIdx];
 
-    renderVerse({ text: p.verse, ref: p.ref });
-    renderQuote({ text: p.quote, author: p.author });
+  renderVerse({ text: p.verse, ref: p.ref });
+  renderQuote({ text: p.quote, author: p.author });
 
     loading.classList.add('hidden');
     error.classList.add('hidden');
     cards.classList.remove('hidden');
+
+  // After render, auto-fit texts to prevent page scroll where possible
+  try { autoFitCards(); } catch {}
   } catch (e) {
     console.error('Init failed:', e);
     loading.classList.add('hidden');
@@ -279,6 +282,37 @@ function scheduleMain(){
   }
 }
 scheduleMain();
+
+// Auto-fit helpers to keep both cards visible without page scroll on phones
+function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+function fitCard(card){
+  if (!card) return;
+  const textEl = card.querySelector('.content');
+  const refEl = card.querySelector('.ref');
+  if (!textEl) return;
+  // Start from current computed size and shrink until fits, but keep reasonable bounds
+  const cs = getComputedStyle(textEl);
+  let base = parseFloat(cs.fontSize) || 20;
+  let refBase = parseFloat(getComputedStyle(refEl||textEl).fontSize) || 14;
+  let tries = 14;
+  const pad = 0; // padding already counted inside card height
+  while (tries-- > 0) {
+    // measure
+    const total = card.clientHeight - pad;
+    const textH = textEl.scrollHeight;
+    const refH = refEl ? refEl.scrollHeight : 0;
+    if (textH + refH <= total) break;
+    base = clamp(base - 1, 14, 28);
+    refBase = clamp(refBase - 1, 12, 18);
+    textEl.style.fontSize = base + 'px';
+    if (refEl) refEl.style.fontSize = refBase + 'px';
+  }
+}
+function autoFitCards(){
+  const cards = document.querySelectorAll('#cards .card');
+  cards.forEach(fitCard);
+}
+addEventListener('resize', ()=>{ try { autoFitCards(); } catch {} }, { passive:true });
 
 // Simple handlers for bind code UI
 window.__rs_setBindCode = function() {
