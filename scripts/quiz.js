@@ -318,12 +318,30 @@ function defer(fn){
 }
 requestAnimationFrame(() => defer(() => {
   import('../scripts/supabase-client.js')
-    .then(m => m.getSupabase && (window.__getSupa = m.getSupabase))
-    .then(()=>{ refreshLeaderboards(); })
-  .catch(()=>{});
+    .then(m => { if (m.getSupabase) { window.__getSupa = m.getSupabase; } })
+    // After Supabase is ready, re-check global reset (so remote clear affects this device)
+    .then(() => checkGlobalReset())
+    // Then do an immediate leaderboard refresh
+    .then(() => refreshLeaderboards())
+    .catch(() => { /* noop */ });
 }));
 // Also schedule a fallback refresh (using JSON if no Supabase) to ensure table fills even if import fails
 requestAnimationFrame(() => defer(() => { refreshLeaderboards(); }));
+// Lightweight auto-refresh while page is visible
+let __lb_timer = null;
+function startLbAutoRefresh() {
+  if (__lb_timer) return;
+  __lb_timer = setInterval(() => {
+    if (document.hidden) return;
+    // drop in-flight guard and refresh
+    __lb_loading = false; refreshLeaderboards();
+  }, 15000); // every 15s
+}
+function stopLbAutoRefresh() { if (__lb_timer) { clearInterval(__lb_timer); __lb_timer = null; } }
+startLbAutoRefresh();
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopLbAutoRefresh(); else startLbAutoRefresh();
+});
 
 // Leaderboard: load top 100 from supabase or fallback JSON
 let __lb_cache = [];
@@ -440,10 +458,20 @@ async function checkGlobalReset() {
     const remoteTs = Date.parse(data.value || data.updated_at || '') || 0;
     const localTs = Number(localStorage.getItem(LS_RESET) || '0');
     if (remoteTs > localTs) {
-      // Clear local quiz locks
-  localStorage.removeItem(LS.completed);
-  localStorage.removeItem(LS.result);
+      // Clear local quiz locks + player/device binds so名字可重新輸入
+      localStorage.removeItem(LS.completed);
+      localStorage.removeItem(LS.result);
+      localStorage.removeItem(LS.playerName);
+      localStorage.removeItem(LS.deviceKey);
       localStorage.setItem(LS_RESET, String(remoteTs));
+      // Try to update UI to allow renaming without reload
+      try {
+        if (els.playerName) {
+          els.playerName.readOnly = false;
+          els.playerName.disabled = false;
+          els.playerName.value = '';
+        }
+      } catch {}
     }
   } catch { /* noop */ }
 }
