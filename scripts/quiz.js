@@ -76,6 +76,20 @@ const STAGES = [
   ]},
 ];
 
+// Helper: Fisher-Yates shuffle
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+// Runtime state for shuffled stages and per-question options
+let RUN_STAGES = null; // [{ name, items: [...] }], items order shuffled per stage
+let currentOptions = []; // options for current question after shuffling answers
+
 const els = {
   nameCard: document.getElementById('nameCard'),
   playerName: document.getElementById('playerName'),
@@ -183,6 +197,8 @@ function resetQuizState(){
   totalScore = 0;
   qCounter = 0;
   details.length = 0;
+  // Build shuffled stages: keep stage order fixed, but shuffle questions within each stage
+  RUN_STAGES = STAGES.map(s => ({ name: s.name, items: shuffleArray(s.items) }));
 }
 
 function startQuiz(name) {
@@ -193,7 +209,7 @@ function startQuiz(name) {
 }
 
 function nextQuestion() {
-  const stage = STAGES[currentStage];
+  const stage = RUN_STAGES[currentStage];
   const item = stage.items[currentIndex];
   // Theme per stage (1..3)
   const body = document.body;
@@ -201,9 +217,18 @@ function nextQuestion() {
   body.classList.add(`theme-${currentStage+1}`);
   els.stageName.textContent = stage.name;
   els.question.textContent = `${currentIndex+1}. ${item.q}`;
-  els.optA.textContent = `A. ${item.A}`;
-  els.optB.textContent = `B. ${item.B}`;
-  els.optC.textContent = `C. ${item.C}`;
+
+  // Build and shuffle options per question
+  const options = [
+    { key: 'A', text: item.A },
+    { key: 'B', text: item.B },
+    { key: 'C', text: item.C },
+  ];
+  currentOptions = shuffleArray(options);
+  // Render shuffled options with fixed A/B/C labels
+  els.optA.textContent = `A. ${currentOptions[0].text}`;
+  els.optB.textContent = `B. ${currentOptions[1].text}`;
+  els.optC.textContent = `C. ${currentOptions[2].text}`;
 
   els.optA.onclick = (e) => { clickPop(e); answer('A'); };
   els.optB.onclick = (e) => { clickPop(e); answer('B'); };
@@ -215,10 +240,13 @@ function nextQuestion() {
 function answer(choice) {
   const msLeft = Math.max(0, QUESTION_TIME - (performance.now() - timerStart));
   stopMeter();
-  const stage = STAGES[currentStage];
+  const stage = RUN_STAGES[currentStage];
   const item = stage.items[currentIndex];
   let gained = 0;
-  if (choice === item.ans) {
+  // Determine whether the chosen displayed option corresponds to the correct original answer
+  const picked = (choice === 'A') ? currentOptions[0] : (choice === 'B') ? currentOptions[1] : currentOptions[2];
+  const isCorrect = picked.key === item.ans;
+  if (isCorrect) {
     const bonus = computeBonus(msLeft); // 0..100
     gained = 100 + bonus;
     stageCorrect += 1;
@@ -235,7 +263,7 @@ function answer(choice) {
     // Stage end bonus if perfect
     if (stageCorrect === 10) {
       totalScore += 500;
-      details.push({ type:'bonus', stage: STAGES[currentStage].name, text: `${STAGES[currentStage].name} 全對加成 +500` });
+  details.push({ type:'bonus', stage: RUN_STAGES[currentStage].name, text: `${RUN_STAGES[currentStage].name} 全對加成 +500` });
     }
     // Reset for next stage
     currentStage += 1;
